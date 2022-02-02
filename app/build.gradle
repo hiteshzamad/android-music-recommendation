@@ -1,0 +1,134 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'androidx.navigation.safeargs.kotlin'
+}
+
+android {
+    compileSdk 31
+    defaultConfig {
+        applicationId "com.mymusic"
+        minSdk 21
+        targetSdk 31
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        useIR = true
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.2.0-alpha01'
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+//Local Libraries
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    //Android Kotlin Core
+    implementation 'androidx.core:core-ktx:1.7.0'
+    //Android AppCompat
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    //Android Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
+
+    //Retrofit
+//    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+//    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
+    //Firebase BOM
+    implementation platform('com.google.firebase:firebase-bom:28.4.2')
+    //Firebase Auth
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    //Firebase Database
+//    implementation 'com.google.firebase:firebase-database-ktx'
+    //Firebase Messaging
+//    implementation 'com.google.firebase:firebase-messaging-ktx'
+    //Firebase Firestore
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+
+    //Google Play Services
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
+
+    //Preference Data Store
+//    implementation("androidx.datastore:datastore:1.0.0")
+//    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    //Work Manager
+//    implementation("androidx.work:work-runtime-ktx:$work_version")
+
+    // Compose
+    implementation "androidx.compose.ui:ui:$compose_version"
+    // Compose Foundation
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+
+    // Material
+    implementation 'com.google.android.material:material:1.5.0'
+
+    // Compose Activity Integration
+    implementation 'androidx.activity:activity-compose:1.4.0'
+    // Compose Material Integration
+    implementation "androidx.compose.material:material:$compose_version"
+    // Compose Material design icons Integration
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    // Compose ViewModels Integration
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0'
+    // Compose Livedata Integration
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    // Compose Navigation Integration
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+
+//    implementation 'com.google.android.gms:play-services-location:18.0.0'
+//    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.1.1'
+
+
+    //Glide Image Library
+    annotationProcessor("com.github.bumptech.glide:compiler:4.11.0")
+    implementation("com.github.bumptech.glide:glide:4.11.0")
+
+    // Navigation Kotlin
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
+    // Navigation Feature module Support
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
+
+    // Compose Tooling support (Previews, etc.)
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+
+    // Testing JUnit
+    testImplementation 'junit:junit:4.13.2'
+    // Testing Navigation
+    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
+    // Testing Compose UI
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}

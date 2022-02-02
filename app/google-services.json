@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "759690842181",
+    "project_id": "music-recommendation-sys-61f15",
+    "storage_bucket": "music-recommendation-sys-61f15.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759690842181:android:2b7adc29b06e026a92d32c",
+        "android_client_info": {
+          "package_name": "com.mymusic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "759690842181-qjd7gpao343ot9hme9r8qh9bcrphjbaf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYB0gFbG6SFdMyXuimZsldMhZvh3G9mnY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "759690842181-qjd7gpao343ot9hme9r8qh9bcrphjbaf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
