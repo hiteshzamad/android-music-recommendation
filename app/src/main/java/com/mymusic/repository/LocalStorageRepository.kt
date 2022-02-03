@@ -4,11 +4,9 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import com.mymusic.model.Music
 
-
-class StorageRepository(private val context: Context) {
+class LocalStorageRepository(private val context: Context) {
 
     fun getMusicList(): List<Music> {
         val musicList = mutableListOf<Music>()

@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymusic.AppContainer
 import com.mymusic.model.Music
-import com.mymusic.task.MusicPlayer
+import com.mymusic.task.Player
 import kotlinx.coroutines.launch
 
-class MusicPlayerViewModel(
-    private val musicPlayer: MusicPlayer = AppContainer.musicPlayer
+class PlayerVM(
+    private val player: Player = AppContainer.player
 ) : ViewModel() {
 
     var currentMusic = MutableLiveData<Music>()
@@ -40,21 +40,21 @@ class MusicPlayerViewModel(
 
     init {
         viewModelScope.launch {
-            musicPlayer.addPlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
-            musicPlayer.addCurrentMusicChangeListener(currentMusicChangeListener = onCurrentMusicChangeListener)
-            musicPlayer.addCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
-            musicPlayer.addLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
-            musicPlayer.addShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
+            player.addPlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
+            player.addCurrentMusicChangeListener(currentMusicChangeListener = onCurrentMusicChangeListener)
+            player.addCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
+            player.addLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
+            player.addShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        musicPlayer.removePlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
-        musicPlayer.removeCurrentMusicChangeListener(onCurrentMusicChangeListener = onCurrentMusicChangeListener)
-        musicPlayer.removeCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
-        musicPlayer.removeLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
-        musicPlayer.removeShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
+        player.removePlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
+        player.removeCurrentMusicChangeListener(onCurrentMusicChangeListener = onCurrentMusicChangeListener)
+        player.removeCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
+        player.removeLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
+        player.removeShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
     }
 
 //    fun start(music: Music) {
@@ -65,55 +65,55 @@ class MusicPlayerViewModel(
 //
     fun play() {
         viewModelScope.launch {
-            musicPlayer.play()
+            player.play()
         }
     }
 
     fun pause() {
         viewModelScope.launch {
-            musicPlayer.pause()
+            player.pause()
         }
     }
 
     fun cursorPosition(position: Float) {
         viewModelScope.launch {
-            musicPlayer.cursorPosition(position)
+            player.cursorPosition(position)
         }
     }
 
     fun loop(){
         viewModelScope.launch {
-            musicPlayer.loop()
+            player.loop()
         }
     }
 
     fun unLoop(){
         viewModelScope.launch {
-            musicPlayer.unLoop()
+            player.unLoop()
         }
     }
 
     fun unShuffle() {
         viewModelScope.launch {
-            musicPlayer.unShuffle()
+            player.unShuffle()
         }
     }
 
     fun shuffle(){
         viewModelScope.launch {
-            musicPlayer.shuffle()
+            player.shuffle()
         }
     }
 
     fun previousMusic(){
         viewModelScope.launch {
-            musicPlayer.previous()
+            player.previous()
         }
     }
 
     fun nextMusic(){
         viewModelScope.launch {
-            musicPlayer.next()
+            player.next()
         }
     }
 }

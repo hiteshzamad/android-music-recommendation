@@ -20,12 +20,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mymusic.R
 import com.mymusic.model.DeviceState
 import com.mymusic.model.Task
-import com.mymusic.viewmodel.InitializeViewModel
+import com.mymusic.viewmodel.InitializeVM
 import kotlinx.coroutines.delay
 
 @Composable
 fun InitializeComposable(
-    viewModel: InitializeViewModel = viewModel(),
+    viewModel: InitializeVM = viewModel(),
     onInitialize: (DeviceState) -> Unit
 ) {
     var running = false
@@ -45,7 +45,7 @@ fun InitializeComposable(
             is Task.Success -> {
                 running = false
                 LaunchedEffect(task) {
-                    delay(100)
+                    delay(1500)
                     task.data?.let { onInitialize(it) }
                 }
             }
@@ -64,7 +64,7 @@ fun InitializeComposable(
         Spacer(modifier = Modifier.height(15.dp))
         Text(
             text = "My Music",
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             color = Color.White
         )
         Spacer(modifier = Modifier.height(30.dp))

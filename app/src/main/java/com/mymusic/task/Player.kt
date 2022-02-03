@@ -7,7 +7,7 @@ import android.net.Uri
 import com.mymusic.model.Music
 import java.util.*
 
-class MusicPlayer(private val context: Context) {
+class Player(private val context: Context) {
     private val mediaPlayer = MediaPlayer()
     private val playPauseChangeListenerList = mutableListOf<(Boolean) -> Unit>()
     private val currentMusicChangeListenerList = mutableListOf<(Music) -> Unit>()

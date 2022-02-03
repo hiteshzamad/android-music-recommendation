@@ -1,7 +1,6 @@
 package com.mymusic.composable
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
@@ -29,11 +27,11 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.mymusic.R
 import com.mymusic.model.Music
-import com.mymusic.viewmodel.StorageViewModel
+import com.mymusic.viewmodel.LocalStorageVM
 
 @Composable
-fun StorageComposable(
-    viewModel: StorageViewModel = viewModel(),
+fun LocalStorageComposable(
+    viewModel: LocalStorageVM = viewModel(),
     onMusicClick: (Music) -> Unit
 ) {
     var musicList = listOf<Music>()
@@ -45,7 +43,7 @@ fun StorageComposable(
             viewModel.retrieveMusic()
         }
     )
-    Screen(musicList, onMusicClick)
+    View(musicList, onMusicClick)
 }
 
 @Composable
@@ -75,50 +73,35 @@ fun HandlePermission(onPermissionGranted: () -> Unit) {
 }
 
 @Composable
-private fun Screen(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
-    Column {
-        ActionBar()
-        LocalMusicList(musicList, onMusicClick)
-    }
-}
-
-@Composable
-private fun ActionBar() {
-    TopAppBar(
-        title = {
-            Text(text = "Local Storage", fontSize = 18.sp)
-        }
-    )
-}
-
-@Composable
-private fun LocalMusicList(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
+private fun View(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
     ) {
         items(musicList) { item ->
-            MusicItem(item.name, item.artist, item.imageUri) {
-                onMusicClick(item)
-            }
+            MusicItem(
+                name = item.name,
+                artist = item.artist,
+                imageUri = item.imageUri,
+                onClick = {
+                    onMusicClick(item)
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun rememberImageView(context: Context) = remember {
-    android.widget.ImageView(context)
-}
-
-
-@Composable
 private fun MusicItem(name: String, artist: String, imageUri: String, onClick: () -> Unit) {
+    val context = LocalContext.current
     Row(
-        modifier = Modifier
-            .padding(horizontal = 4.dp, vertical = 2.dp)
+        modifier = Modifier.fillMaxWidth()
             .clickable { onClick() }
+            .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
-        val imageView = rememberImageView(context = LocalContext.current)
+        val imageView = remember {
+            android.widget.ImageView(context)
+        }
         Column(
             modifier = Modifier
                 .size(60.dp)
@@ -129,7 +112,6 @@ private fun MusicItem(name: String, artist: String, imageUri: String, onClick: (
                 update = {}
             )
         }
-        val context = LocalContext.current
         LaunchedEffect(imageUri) {
             Glide.with(context)
                 .load(imageUri)

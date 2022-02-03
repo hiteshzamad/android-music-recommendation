@@ -1,12 +1,13 @@
 package com.mymusic.composable
 
-import android.content.Context
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
@@ -27,7 +28,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,56 +35,112 @@ import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.Glide
 import com.mymusic.R
 import com.mymusic.model.Music
+import com.mymusic.model.Task
 import com.mymusic.navigation.*
-import com.mymusic.viewmodel.DashboardViewModel
+import com.mymusic.viewmodel.DashboardVM
 
 @Composable
 fun DashboardComposable(
-    viewModel: DashboardViewModel = viewModel(),
+    viewModel: DashboardVM = viewModel(),
     onMusicExploreClicked: () -> Unit
 ) {
     var music: Music? = null
     var play = false
+    var recommendationList = listOf<String>()
+    var historyList = listOf<String>()
+    val context = LocalContext.current
     viewModel.currentMusic.observeAsState().value?.let { music1 -> music = music1 }
-    viewModel.play.observeAsState().value?.let { play1 -> play = play1 }
-    Screen(
-        onMusicClicked = { music1 ->
-            viewModel.start(music = music1)
-        },
-        currentMusic = music,
-        play = play,
-        onPausePlayClicked = {
-            if (!play) {
-                viewModel.play()
-            } else {
-                viewModel.pause()
+    viewModel.musicRunning.observeAsState().value?.let { play1 -> play = play1 }
+    viewModel.historyList.observeAsState().value?.data?.let { list1 -> historyList = list1 }
+    viewModel.recommendationList.observeAsState().value?.let { task ->
+        when (task) {
+            is Task.Init, is Task.Running -> {}
+            is Task.Failed -> {
+                LaunchedEffect(task) {
+                    task.message?.let { message ->
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            is Task.Success -> {
+                task.data?.let {
+                    recommendationList = it
+                }
+            }
+        }
+    }
+    val items = listOf(
+        DashboardNavigation.Home,
+        DashboardNavigation.Device,
+        DashboardNavigation.Account
+    )
+    val navHostController = rememberNavController()
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    Scaffold(
+        topBar = {
+            navBackStackEntry?.destination?.route?.let {
+                when (it) {
+                    HOME -> DarkTopAppBarComposable(
+                        title = "Home"
+                    )
+                    LOCAL_STORAGE -> DarkTopAppBarComposable(
+                        title = "Local Storage"
+                    )
+                    ACCOUNT -> DarkTopAppBarComposable(
+                        title = "Account"
+                    )
+                }
             }
         },
-        onMusicExploreClicked = onMusicExploreClicked
-    )
-}
-
-@Composable
-private fun Screen(
-    onMusicClicked: (Music) -> Unit,
-    currentMusic: Music?,
-    play: Boolean,
-    onPausePlayClicked: () -> Unit,
-    onMusicExploreClicked: () -> Unit
-) {
-    val navHostController = rememberNavController()
-    Scaffold(
+        floatingActionButton = {
+            navBackStackEntry?.destination?.route?.let {
+                if (it == HOME) {
+                    FloatingActionButton(
+                        onClick = {
+                            viewModel.recommend()
+                        },
+                        content = {
+                            Icon(Icons.Default.Memory, contentDescription = null)
+                        }
+                    )
+                }
+            }
+        },
         bottomBar = {
             Column {
-                currentMusic?.let { currentMusic1 ->
+                music?.let { music1 ->
                     MusicPlayerTile(
-                        music = currentMusic1,
+                        music = music1,
                         play = play,
-                        onPausePlayClicked = onPausePlayClicked,
+                        onPausePlayClicked = {
+                            if (!play) {
+                                viewModel.play()
+                            } else {
+                                viewModel.pause()
+                            }
+                        },
                         onMusicExploreClicked = onMusicExploreClicked
                     )
                 }
-                BottomNavigation(navHostController = navHostController)
+                BottomNavigation {
+                    items.forEach { screen ->
+                        BottomNavigationItem(
+                            icon = { Icon(screen.icon, contentDescription = null) },
+                            label = { Text(stringResource(screen.resourceId)) },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navHostController.navigate(screen.route) {
+                                    popUpTo(navHostController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                }
             }
         },
         content = {
@@ -94,20 +150,23 @@ private fun Screen(
                 modifier = Modifier.padding(it)
             ) {
                 composable(HOME) {
-
+                    HomeComposable(historyList, recommendationList)
                 }
-                composable(STORAGE) {
-                    StorageComposable(
-                        onMusicClick = onMusicClicked
+                composable(LOCAL_STORAGE) {
+                    LocalStorageComposable(
+                        onMusicClick = { music1 ->
+                            viewModel.start(music = music1)
+                        }
                     )
                 }
                 composable(ACCOUNT) {
-
+                    AccountComposable()
                 }
             }
         }
     )
 }
+
 
 @Composable
 private fun MusicPlayerTile(
@@ -116,6 +175,7 @@ private fun MusicPlayerTile(
     onPausePlayClicked: () -> Unit,
     onMusicExploreClicked: () -> Unit
 ) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier
             .padding(all = 4.dp)
@@ -127,7 +187,7 @@ private fun MusicPlayerTile(
             modifier = Modifier.background(color = MaterialTheme.colors.primary),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageView = rememberImageView(context = LocalContext.current)
+            val imageView = remember { ImageView(context) }
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -138,7 +198,6 @@ private fun MusicPlayerTile(
                     factory = { imageView },
                     update = {}
                 )
-                val context = LocalContext.current
                 LaunchedEffect(music.imageUri) {
                     Glide.with(context)
                         .load(music.imageUri)
@@ -183,40 +242,6 @@ private fun MusicPlayerTile(
                     tint = Color.White
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun rememberImageView(context: Context) = remember {
-    ImageView(context)
-}
-
-@Composable
-private fun BottomNavigation(navHostController: NavHostController) {
-    val items = listOf(
-        DashboardNavigation.Home,
-        DashboardNavigation.Device,
-        DashboardNavigation.Account
-    )
-    BottomNavigation {
-        val navBackStackEntry by navHostController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
-        items.forEach { screen ->
-            BottomNavigationItem(
-                icon = { Icon(screen.icon, contentDescription = null) },
-                label = { Text(stringResource(screen.resourceId)) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                onClick = {
-                    navHostController.navigate(screen.route) {
-                        popUpTo(navHostController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
         }
     }
 }

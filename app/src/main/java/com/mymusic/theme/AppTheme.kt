@@ -1,6 +1,5 @@
 package com.mymusic.theme
 
-
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.lightColors
@@ -19,9 +18,8 @@ fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = ColorPalette
     MaterialTheme(
-        colors = colors,
+        colors = ColorPalette,
         typography = Typography,
         shapes = Shapes,
         content = content

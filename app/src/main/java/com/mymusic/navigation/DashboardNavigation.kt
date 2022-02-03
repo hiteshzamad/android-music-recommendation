@@ -14,6 +14,6 @@ sealed class DashboardNavigation(
     val icon: ImageVector
 ) {
     object Home : DashboardNavigation(HOME, R.string.home, Icons.Default.Home)
-    object Device : DashboardNavigation(STORAGE, R.string.storage, Icons.Outlined.Storage)
+    object Device : DashboardNavigation(LOCAL_STORAGE, R.string.local_storage, Icons.Outlined.Storage)
     object Account : DashboardNavigation(ACCOUNT, R.string.account, Icons.Default.AccountCircle)
 }

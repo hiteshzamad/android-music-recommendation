@@ -23,11 +23,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
 import com.mymusic.R
 import com.mymusic.model.Music
-import com.mymusic.viewmodel.MusicPlayerViewModel
+import com.mymusic.viewmodel.PlayerVM
 
 @Composable
 fun MusicPlayerComposable(
-    viewModel: MusicPlayerViewModel = viewModel(),
+    viewModel: PlayerVM = viewModel(),
     onNavigationUpClicked: () -> Unit
 ) {
     var music: Music? = null
