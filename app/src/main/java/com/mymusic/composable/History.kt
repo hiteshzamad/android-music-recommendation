@@ -1,13 +1,10 @@
 package com.mymusic.composable
 
 import android.widget.ImageView
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -27,17 +23,11 @@ import com.mymusic.R
 import com.mymusic.model.Music
 
 @Composable
-fun HomeComposable(
-    recommendationList: List<Music>,
-    onMusicClick: (Music) -> Unit
+fun HistoryComposable(
+    musicList: List<Music>, onMusicClick: (Music) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-       View(recommendationList, onMusicClick)
-    }
+    View(musicList, onMusicClick)
 }
-
 
 @Composable
 private fun View(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
@@ -62,7 +52,8 @@ private fun View(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
 private fun MusicItem(name: String, artist: String, imageUri: String, onClick: () -> Unit) {
     val context = LocalContext.current
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .clickable { onClick() }
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
@@ -111,5 +102,3 @@ private fun MusicItem(name: String, artist: String, imageUri: String, onClick: (
         }
     }
 }
-
-

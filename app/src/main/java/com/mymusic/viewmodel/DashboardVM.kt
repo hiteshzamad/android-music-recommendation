@@ -20,8 +20,9 @@ class DashboardVM(
 
     val currentMusic = MutableLiveData<Music>()
     val musicRunning = MutableLiveData(false)
-    val historyList = MutableLiveData<Resource<List<String>>>()
-    val recommendationList = MutableLiveData<Task<List<String>>>()
+    val historyList = MutableLiveData<Resource<List<Music>>>()
+    val recommendationList = MutableLiveData<Task<List<Music>>>()
+
     private val onPlayPauseChangeListener = { boolean: Boolean ->
         musicRunning.postValue(boolean)
     }
@@ -34,19 +35,8 @@ class DashboardVM(
         viewModelScope.launch {
             player.addPlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
             player.addCurrentMusicChangeListener(currentMusicChangeListener = onCurrentMusicChangeListener)
-            try {
-                val list = accountRepository.getListenHistory()
-                historyList.value = Resource(list)
-                if(list.isNotEmpty()){
-                    recommendationList.value = Task.Success(restRepository.getRecommends(list))
-                }
-            } catch (e: Exception) {
-                var message = "Error"
-                e.message?.let { message = it }
-                recommendationList.value = Task.Failed(message = message)
-                return@launch
-            }
         }
+        recommend()
     }
 
     override fun onCleared() {
@@ -73,14 +63,24 @@ class DashboardVM(
         }
     }
 
+    fun history(){
+        viewModelScope.launch {
+            try {
+                val tempHistoryList = accountRepository.getListenHistory()
+                historyList.value = Resource(toMusicList(tempHistoryList))
+            } catch (e: Exception) {
+
+            }
+        }
+    }
+
     fun recommend() {
         viewModelScope.launch {
             try {
-                val list = accountRepository.getListenHistory()
-                historyList.value = Resource(list)
-                if(list.isNotEmpty()){
-                    recommendationList.value = Task.Success(restRepository.getRecommends(list))
-                }
+                val tempHistoryList = accountRepository.getListenHistory()
+                historyList.value = Resource(toMusicList(tempHistoryList))
+                val recommendList = restRepository.getRecommends(tempHistoryList)
+                recommendationList.value = Task.Success(toMusicList(recommendList))
             } catch (e: Exception) {
                 var message = "Error"
                 e.message?.let { message = it }
@@ -88,5 +88,13 @@ class DashboardVM(
                 return@launch
             }
         }
+    }
+
+    private fun toMusicList(list: List<String>) : List<Music>{
+        val listM = mutableListOf<Music>()
+        list.forEach {
+            listM.add(Music(path = "", name = it))
+        }
+        return listM
     }
 }

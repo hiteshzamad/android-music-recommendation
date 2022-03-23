@@ -30,7 +30,7 @@ import com.mymusic.model.Music
 import com.mymusic.viewmodel.LocalStorageVM
 
 @Composable
-fun LocalStorageComposable(
+fun LocalComposable(
     viewModel: LocalStorageVM = viewModel(),
     onMusicClick: (Music) -> Unit
 ) {

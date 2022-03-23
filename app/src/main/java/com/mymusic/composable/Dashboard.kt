@@ -46,15 +46,16 @@ fun DashboardComposable(
 ) {
     var music: Music? = null
     var play = false
-    var recommendationList = listOf<String>()
-    var historyList = listOf<String>()
+    var recommendationList = listOf<Music>()
+    var historyList = listOf<Music>()
     val context = LocalContext.current
     viewModel.currentMusic.observeAsState().value?.let { music1 -> music = music1 }
     viewModel.musicRunning.observeAsState().value?.let { play1 -> play = play1 }
     viewModel.historyList.observeAsState().value?.data?.let { list1 -> historyList = list1 }
     viewModel.recommendationList.observeAsState().value?.let { task ->
         when (task) {
-            is Task.Init, is Task.Running -> {}
+            is Task.Init, is Task.Running -> {
+            }
             is Task.Failed -> {
                 LaunchedEffect(task) {
                     task.message?.let { message ->
@@ -71,7 +72,8 @@ fun DashboardComposable(
     }
     val items = listOf(
         DashboardNavigation.Home,
-        DashboardNavigation.Device,
+        DashboardNavigation.History,
+        DashboardNavigation.Local,
         DashboardNavigation.Account
     )
     val navHostController = rememberNavController()
@@ -84,8 +86,11 @@ fun DashboardComposable(
                     HOME -> DarkTopAppBarComposable(
                         title = "Home"
                     )
-                    LOCAL_STORAGE -> DarkTopAppBarComposable(
-                        title = "Local Storage"
+                    HISTORY -> DarkTopAppBarComposable(
+                        title = "History"
+                    )
+                    LOCAL -> DarkTopAppBarComposable(
+                        title = "Local"
                     )
                     ACCOUNT -> DarkTopAppBarComposable(
                         title = "Account"
@@ -150,10 +155,13 @@ fun DashboardComposable(
                 modifier = Modifier.padding(it)
             ) {
                 composable(HOME) {
-                    HomeComposable(historyList, recommendationList)
+                    HomeComposable(recommendationList) { music ->viewModel.start(music) }
                 }
-                composable(LOCAL_STORAGE) {
-                    LocalStorageComposable(
+                composable(HISTORY) {
+                    HistoryComposable(historyList) { music ->viewModel.start(music) }
+                }
+                composable(LOCAL) {
+                    LocalComposable(
                         onMusicClick = { music1 ->
                             viewModel.start(music = music1)
                         }
