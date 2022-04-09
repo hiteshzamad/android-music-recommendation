@@ -1,4 +1,4 @@
-package com.mymusic
+package com.mymusic.app
 
 import android.app.Application
 

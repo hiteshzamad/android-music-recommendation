@@ -1,4 +1,4 @@
-package com.mymusic.composable
+package com.mymusic.welcome
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -8,9 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mymusic.composable.ButtonComposable
 
 @Composable
-fun NotLoggedComposable(
+fun WelcomeComposable(
     onLoginClicked: () -> Unit,
     onSignUpClicked: () -> Unit
 ) {

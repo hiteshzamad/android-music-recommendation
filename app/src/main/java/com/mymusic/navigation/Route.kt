@@ -1,7 +1,7 @@
 package com.mymusic.navigation
 
 const val INITIALIZE = "initialize"
-const val NOT_LOGGED = "notlogged"
+const val WELCOME = "notlogged"
 const val LOG_IN = "login"
 const val FORGOT = "forgot"
 const val SIGN_UP = "signup"

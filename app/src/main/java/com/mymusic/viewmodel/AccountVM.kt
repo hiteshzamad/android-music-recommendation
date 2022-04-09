@@ -3,7 +3,7 @@ package com.mymusic.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.model.Resource
 import com.mymusic.model.User
 import com.mymusic.repository.AccountRepository

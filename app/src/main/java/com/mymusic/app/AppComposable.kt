@@ -1,12 +1,16 @@
-package com.mymusic.composable
+package com.mymusic.app
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.mymusic.composable.*
 import com.mymusic.model.DeviceState
 import com.mymusic.navigation.*
+import com.mymusic.signup.SignUpComposable
+import com.mymusic.initialize.InitializeComposable
 import com.mymusic.theme.AppTheme
+import com.mymusic.welcome.WelcomeComposable
 
 @Composable
 fun AppComposable() {
@@ -20,7 +24,7 @@ fun AppComposable() {
                 InitializeComposable(
                     onInitialize = { state ->
                         when (state) {
-                            DeviceState.NOT_LOGGED -> navHostController.navigate(NOT_LOGGED) {
+                            DeviceState.NOT_LOGGED -> navHostController.navigate(WELCOME) {
                                 popUpTo(INITIALIZE) { inclusive = true }
                             }
                             DeviceState.DETAIL -> navHostController.navigate(ADD_DETAIL) {
@@ -33,8 +37,8 @@ fun AppComposable() {
                     }
                 )
             }
-            composable(NOT_LOGGED) {
-                NotLoggedComposable(
+            composable(WELCOME) {
+                WelcomeComposable(
                     onLoginClicked = {
                         navHostController.navigate(LOG_IN)
                     },
@@ -50,7 +54,7 @@ fun AppComposable() {
                     },
                     onLoginSuccess = {
                         navHostController.navigate(INITIALIZE) {
-                            popUpTo(NOT_LOGGED) { inclusive = true }
+                            popUpTo(WELCOME) { inclusive = true }
                         }
                     },
                     onForgotClicked = {
@@ -65,7 +69,7 @@ fun AppComposable() {
                     },
                     onSignUpSuccess = {
                         navHostController.navigate(INITIALIZE) {
-                            popUpTo(NOT_LOGGED) { inclusive = true }
+                            popUpTo(WELCOME) { inclusive = true }
                         }
                     }
                 )

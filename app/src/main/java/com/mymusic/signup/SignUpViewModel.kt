@@ -1,15 +1,15 @@
-package com.mymusic.viewmodel
+package com.mymusic.signup
 
 import android.text.TextUtils
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.model.Task
 import com.mymusic.repository.AccountRepository
 import kotlinx.coroutines.launch
 
-class SignUpVM(
+class SignUpViewModel(
     private val accountRepository: AccountRepository = AppContainer.accountRepository
 ) : ViewModel() {
     val signUp = MutableLiveData<Task<Unit>>(Task.Init())

@@ -3,7 +3,7 @@ package com.mymusic.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.datasource.RemoteDatabase
 import com.mymusic.model.DeviceState
 import com.mymusic.model.User

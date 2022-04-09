@@ -1,15 +1,15 @@
-package com.mymusic.viewmodel
+package com.mymusic.initialize
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.model.DeviceState
 import com.mymusic.model.Task
 import com.mymusic.repository.AccountRepository
 import kotlinx.coroutines.launch
 
-class InitializeVM(
+class InitializeViewModel(
     private val accountRepository: AccountRepository = AppContainer.accountRepository
 ) : ViewModel() {
 

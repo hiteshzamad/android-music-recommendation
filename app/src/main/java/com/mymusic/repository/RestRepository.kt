@@ -2,7 +2,7 @@ package com.mymusic.repository
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.rest.ApiService
 
 class RestRepository(

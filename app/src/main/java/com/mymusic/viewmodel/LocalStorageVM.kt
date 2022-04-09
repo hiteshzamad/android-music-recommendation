@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymusic.model.Music
-import com.mymusic.AppContainer
+import com.mymusic.app.AppContainer
 import com.mymusic.repository.LocalStorageRepository
 import kotlinx.coroutines.launch
 
