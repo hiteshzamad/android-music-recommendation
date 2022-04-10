@@ -27,14 +27,14 @@ class LocalMusicRepository(private val context: Context) {
                     path = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         cursor.getInt(3).toLong()
+                    ).toString(),
+                    name = cursor.getString(1),
+                    artist = cursor.getString(2),
+                    imageUri = ContentUris.withAppendedId(
+                        Uri.parse("content://media/external/audio/albumart"),
+                        cursor.getInt(0).toLong()
                     ).toString()
                 )
-                music.name = cursor.getString(1)
-                music.artist = cursor.getString(2)
-                music.imageUri = ContentUris.withAppendedId(
-                    Uri.parse("content://media/external/audio/albumart"),
-                    cursor.getInt(0).toLong()
-                ).toString()
                 musicList.add(music)
             }
         }

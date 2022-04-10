@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mymusic.util.MAX_NAME_LENGTH
-import com.mymusic.model.Task
+import com.mymusic.util.Task
 import com.mymusic.util.*
 
 @Composable

@@ -5,10 +5,10 @@ import com.google.gson.JsonObject
 import com.mymusic.AppContainer
 
 class RecommendationRepository(
-    private val recommendationApiService: RecommendationApiService = AppContainer.apiService
+    private val recommendationApiService: RecommendationApiService = AppContainer.recommendationApiService
 ) {
     suspend fun getRecommends(list: List<String>): List<String> {
-        return getList(recommendationApiService.getRecommends(getJsonObject(list)))
+        return getList(recommendationApiService.recommends(getJsonObject(list)))
     }
 
     private fun getJsonObject(list: List<String>): JsonObject {

@@ -6,5 +6,5 @@ import retrofit2.http.POST
 
 interface RecommendationApiService {
     @POST("predict")
-    suspend fun getRecommends(@Body songs: JsonObject): JsonObject
+    suspend fun recommends(@Body songs: JsonObject): JsonObject
 }

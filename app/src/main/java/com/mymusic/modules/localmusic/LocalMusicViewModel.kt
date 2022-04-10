@@ -8,7 +8,7 @@ import com.mymusic.AppContainer
 import kotlinx.coroutines.launch
 
 class LocalMusicViewModel(
-    private val localMusicRepository: LocalMusicRepository = AppContainer.storageRepository
+    private val localMusicRepository: LocalMusicRepository = AppContainer.localMusicRepository
 ) : ViewModel() {
 
     val musics = MutableLiveData<List<Music>>()

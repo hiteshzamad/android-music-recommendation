@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymusic.AppContainer
-import com.mymusic.model.Task
+import com.mymusic.util.Task
 import kotlinx.coroutines.launch
 
 class SignUpViewModel(

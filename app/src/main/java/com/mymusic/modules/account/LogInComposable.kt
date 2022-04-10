@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mymusic.util.MAX_EMAIL_LENGTH
 import com.mymusic.util.MAX_PASSWORD_LENGTH
-import com.mymusic.model.Task
+import com.mymusic.util.Task
 import com.mymusic.util.*
 
 @Composable

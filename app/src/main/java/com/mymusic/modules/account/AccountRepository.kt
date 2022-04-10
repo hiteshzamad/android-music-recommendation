@@ -4,22 +4,19 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.mymusic.AppContainer
-import com.mymusic.datasource.RemoteDatabase
-import com.mymusic.modules.initialize.DeviceState
-import com.mymusic.model.User
 import kotlinx.coroutines.tasks.await
 
 class AccountRepository(
     private val auth: FirebaseAuth = Firebase.auth,
-    private val remoteDatabase: RemoteDatabase = AppContainer.remoteDatabase
+    private val accountCollection: AccountCollection = AppContainer.accountCollection
 ) {
 
     suspend fun addDetail(name: String, gender: String, dob: String) {
-        remoteDatabase.setUser(auth.currentUser!!.uid, User(name, gender, dob))
+        accountCollection.setUser(auth.currentUser!!.uid, Account(name, gender, dob))
     }
 
-    suspend fun getUser(): User {
-        val user = remoteDatabase.getUser(auth.currentUser!!.uid)!!
+    suspend fun getUser(): Account {
+        val user = accountCollection.getUser(auth.currentUser!!.uid)!!
         user.email = auth.currentUser!!.email
         return user
     }

@@ -4,14 +4,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymusic.AppContainer
-import com.mymusic.model.Resource
-import com.mymusic.model.User
+import com.mymusic.util.Resource
 import kotlinx.coroutines.launch
 
 class AccountViewModel(
     private val accountRepository: AccountRepository = AppContainer.accountRepository
 ) : ViewModel() {
-    val user = MutableLiveData<Resource<User>>(Resource())
+    val user = MutableLiveData<Resource<Account>>(Resource())
 
     init {
         viewModelScope.launch {

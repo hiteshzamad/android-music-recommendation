@@ -17,6 +17,13 @@ class MusicPlayerService(private val context: Context) {
     private var currentMusic: Music? = null
     private var shuffle = false
 
+    private val timerTask: TimerTask = object : TimerTask() {
+        override fun run() {
+            if (mediaPlayer.isPlaying)
+                onCursorPositionChange()
+        }
+    }
+
     init {
         mediaPlayer.setAudioAttributes(
             AudioAttributes.Builder()
@@ -31,12 +38,7 @@ class MusicPlayerService(private val context: Context) {
         mediaPlayer.setOnCompletionListener {
             onPlayPauseChange()
         }
-        Timer().scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                if(mediaPlayer.isPlaying)
-                    onCursorPositionChange()
-            }
-        }, 0, 1000)
+        Timer().scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
     fun start(music: Music) {
@@ -45,12 +47,10 @@ class MusicPlayerService(private val context: Context) {
         }
         mediaPlayer.reset()
         mediaPlayer.setDataSource(context, Uri.parse(music.path))
-        mediaPlayer.prepare()
-        mediaPlayer.start()
-        music.duration = (mediaPlayer.duration / 1000.0F)
-        onCurrentMusicChange(music = music)
-        onPlayPauseChange()
-        onCursorPositionChange()
+        mediaPlayer.prepareAsync()
+        mediaPlayer.setOnPreparedListener {
+            onPrepareMusic(music)
+        }
     }
 
     fun play() = try {
@@ -141,6 +141,15 @@ class MusicPlayerService(private val context: Context) {
     fun removeShuffleChangeListener(onShuffleChangeListener: (Boolean) -> Unit) {
         shuffleListenerChangeListenerList.remove(onShuffleChangeListener)
     }
+
+    private fun onPrepareMusic(music: Music) {
+        mediaPlayer.start()
+        music.duration = (mediaPlayer.duration / 1000.0F)
+        onCurrentMusicChange(music = music)
+        onPlayPauseChange()
+        onCursorPositionChange()
+    }
+
     private fun onCurrentMusicChange(music: Music) {
         currentMusic = music
         currentMusicChangeListenerList.forEach { currentMusicChangeListener ->
@@ -166,7 +175,7 @@ class MusicPlayerService(private val context: Context) {
         }
     }
 
-    private fun onShuffleChange(boolean: Boolean){
+    private fun onShuffleChange(boolean: Boolean) {
         shuffle = boolean
         shuffleListenerChangeListenerList.forEach { shuffleChangeListener ->
             shuffleChangeListener(boolean)

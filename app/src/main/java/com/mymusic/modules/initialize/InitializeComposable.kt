@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mymusic.R
 import com.mymusic.util.ProgressBarComposable
-import com.mymusic.model.Task
+import com.mymusic.util.Task
 import kotlinx.coroutines.delay
 
 @Composable

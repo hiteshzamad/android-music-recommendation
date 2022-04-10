@@ -1,4 +1,4 @@
-package com.mymusic.model
+package com.mymusic.util
 
 sealed class Task<T>(
     val data: T? = null,

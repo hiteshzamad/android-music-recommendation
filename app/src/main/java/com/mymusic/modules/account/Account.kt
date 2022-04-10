@@ -1,6 +1,6 @@
-package com.mymusic.model
+package com.mymusic.modules.account
 
-data class User(
+data class Account(
     val name: String,
     val gender: String,
     val dob: String,

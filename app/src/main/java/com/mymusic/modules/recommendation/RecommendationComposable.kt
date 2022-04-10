@@ -1,6 +1,7 @@
 package com.mymusic.modules.recommendation
 
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,16 +19,38 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.mymusic.R
 import com.mymusic.model.Music
+import com.mymusic.util.Task
 
 @Composable
 fun RecommendationComposable(
-    recommendationList: List<Music>,
+    viewModel: RecommendationViewModel = viewModel(),
     onMusicClick: (Music) -> Unit
 ) {
+    var recommendationList = listOf<Music>()
+    val context = LocalContext.current
+    viewModel.recommendationList.observeAsState().value?.let { task ->
+        when (task) {
+            is Task.Init, is Task.Running -> {
+            }
+            is Task.Failed -> {
+                LaunchedEffect(task) {
+                    task.message?.let { message ->
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            is Task.Success -> {
+                task.data?.let {
+                    recommendationList = it
+                }
+            }
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -58,7 +82,8 @@ private fun View(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
 private fun MusicItem(name: String, artist: String, imageUri: String, onClick: () -> Unit) {
     val context = LocalContext.current
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .clickable { onClick() }
             .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {

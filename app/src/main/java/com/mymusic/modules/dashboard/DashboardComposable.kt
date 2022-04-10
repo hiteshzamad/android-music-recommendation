@@ -34,14 +34,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.Glide
 import com.mymusic.R
-import com.mymusic.modules.account.AccountComposable
-import com.mymusic.util.DarkTopAppBarComposable
-import com.mymusic.modules.recommendation.RecommendationComposable
-import com.mymusic.modules.musichistory.MusicHistoryComposable
 import com.mymusic.model.Music
-import com.mymusic.model.Task
+import com.mymusic.modules.account.AccountComposable
 import com.mymusic.modules.localmusic.LocalMusicComposable
+import com.mymusic.modules.musichistory.MusicHistoryComposable
+import com.mymusic.modules.recommendation.RecommendationComposable
 import com.mymusic.navigation.*
+import com.mymusic.util.DarkTopAppBarComposable
+import com.mymusic.util.Task
 
 @Composable
 fun DashboardComposable(
@@ -50,34 +50,11 @@ fun DashboardComposable(
 ) {
     var music: Music? = null
     var play = false
-    var recommendationList = listOf<Music>()
-    var historyList = listOf<Music>()
-    val context = LocalContext.current
     viewModel.currentMusic.observeAsState().value?.let { music1 -> music = music1 }
     viewModel.musicRunning.observeAsState().value?.let { play1 -> play = play1 }
-    viewModel.historyList.observeAsState().value?.data?.let { list1 -> historyList = list1 }
-    viewModel.recommendationList.observeAsState().value?.let { task ->
-        when (task) {
-            is Task.Init, is Task.Running -> {
-            }
-            is Task.Failed -> {
-                LaunchedEffect(task) {
-                    task.message?.let { message ->
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            is Task.Success -> {
-                task.data?.let {
-                    recommendationList = it
-                }
-            }
-        }
-    }
     val items = listOf(
-        DashboardNavigation.Home,
-        DashboardNavigation.History,
-        DashboardNavigation.Local,
+        DashboardNavigation.Recommendation,
+        DashboardNavigation.MusicHistory,
         DashboardNavigation.Account
     )
     val navHostController = rememberNavController()
@@ -87,13 +64,13 @@ fun DashboardComposable(
         topBar = {
             navBackStackEntry?.destination?.route?.let {
                 when (it) {
-                    HOME -> DarkTopAppBarComposable(
-                        title = "Home"
+                    RECOMMENDATION -> DarkTopAppBarComposable(
+                        title = "Recommendation"
                     )
-                    HISTORY -> DarkTopAppBarComposable(
+                    MUSIC_HISTORY -> DarkTopAppBarComposable(
                         title = "History"
                     )
-                    LOCAL -> DarkTopAppBarComposable(
+                    LOCAL_MUSIC -> DarkTopAppBarComposable(
                         title = "Local"
                     )
                     ACCOUNT -> DarkTopAppBarComposable(
@@ -104,16 +81,16 @@ fun DashboardComposable(
         },
         floatingActionButton = {
             navBackStackEntry?.destination?.route?.let {
-                if (it == HOME) {
-                    FloatingActionButton(
-                        onClick = {
-                            viewModel.recommend()
-                        },
-                        content = {
-                            Icon(Icons.Default.Memory, contentDescription = null)
-                        }
-                    )
-                }
+//                if (it == RECOMMENDATION) {
+//                    FloatingActionButton(
+//                        onClick = {
+//                            viewModel.recommend()
+//                        },
+//                        content = {
+//                            Icon(Icons.Default.Memory, contentDescription = null)
+//                        }
+//                    )
+//                }
             }
         },
         bottomBar = {
@@ -158,13 +135,13 @@ fun DashboardComposable(
                 startDestination = START_DESTINATION_DASHBOARD_SCREEN,
                 modifier = Modifier.padding(it)
             ) {
-                composable(HOME) {
-                    RecommendationComposable(recommendationList) { music ->viewModel.start(music) }
+                composable(RECOMMENDATION) {
+                    RecommendationComposable { music -> viewModel.start(music) }
                 }
-                composable(HISTORY) {
-                    MusicHistoryComposable(historyList) { music ->viewModel.start(music) }
+                composable(MUSIC_HISTORY) {
+                    MusicHistoryComposable { music -> viewModel.start(music) }
                 }
-                composable(LOCAL) {
+                composable(LOCAL_MUSIC) {
                     LocalMusicComposable(
                         onMusicClick = { music1 ->
                             viewModel.start(music = music1)

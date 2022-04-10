@@ -4,11 +4,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.mymusic.AppContainer
-import com.mymusic.datasource.RemoteDatabase
 
 class MusicHistoryRepository(
     private val auth: FirebaseAuth = Firebase.auth,
-    private val remoteDatabase: RemoteDatabase = AppContainer.remoteDatabase
+    private val musicHistoryCollection: MusicHistoryCollection = AppContainer.musicHistoryCollection
 ) {
-    suspend fun getListenHistory() = remoteDatabase.getListenHistory(auth.currentUser!!.uid)
+    suspend fun getAll() = musicHistoryCollection.getAll(auth.currentUser!!.uid)
+
+    suspend fun add(name: String) = musicHistoryCollection.add(auth.currentUser!!.uid, name.trim())
 }
