@@ -8,6 +8,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.mymusic.AppContainer
 import com.mymusic.modules.search.MusicSearch
+import com.mymusic.modules.search.searchSongDataset
 
 class MusicRepository(
     private val musicApi: MusicApi = AppContainer.musicApi,
@@ -26,13 +27,15 @@ class MusicRepository(
         return musicList
     }
 
-    suspend fun getSearchList(name: String): List<MusicSearch> {
+    suspend fun getSearchList(search: String): List<MusicSearch> {
         val searchList = mutableListOf<MusicSearch>()
         try {
-            searchMusicMetaJsonList(name)?.forEach { musicMetaJson ->
-                musicMetaJson.asJsonObject.toMusicSearch("")?.let { musicSearch ->
-                    searchList.add(musicSearch)
-                }
+            val names = searchSongDataset(search)
+            for (name in names) {
+                searchMusicMetaJsonList(name)?.bestMatchMusicMetaJson()?.toMusicSearch(name)
+                    ?.let { musicSearch ->
+                        searchList.add(musicSearch)
+                    }
             }
         } catch (e: Exception) {
         }

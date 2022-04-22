@@ -333,6 +333,9 @@ private fun TopAppBarSearch(
                 onValueChange = { value ->
                     if (value.length <= 32) {
                         setSearch(value)
+                        if (search.isNotEmpty() && search.length >= 4 ) {
+                            onSearch()
+                        }
                     }
                 },
                 singleLine = true,
