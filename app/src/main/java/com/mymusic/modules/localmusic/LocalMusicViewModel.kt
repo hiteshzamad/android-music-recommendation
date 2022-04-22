@@ -3,7 +3,7 @@ package com.mymusic.modules.localmusic
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mymusic.model.Music
+import com.mymusic.modules.music.Music
 import com.mymusic.AppContainer
 import kotlinx.coroutines.launch
 

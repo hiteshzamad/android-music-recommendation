@@ -1,15 +1,28 @@
 package com.mymusic.modules.musichistory
 
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import androidx.annotation.WorkerThread
 import com.mymusic.AppContainer
+import com.mymusic.Time
 
 class MusicHistoryRepository(
-    private val auth: FirebaseAuth = Firebase.auth,
-    private val musicHistoryCollection: MusicHistoryCollection = AppContainer.musicHistoryCollection
+    private val musicHistoryDao: MusicHistoryDao = AppContainer.musicHistoryDao
 ) {
-    suspend fun getAll() = musicHistoryCollection.getAll(auth.currentUser!!.uid)
 
-    suspend fun add(name: String) = musicHistoryCollection.add(auth.currentUser!!.uid, name.trim())
+    fun readRecentTen() = musicHistoryDao.loadRecent10()
+
+    @WorkerThread
+    suspend fun upsert(id: Long) {
+        val musicHistoryEntity = musicHistoryDao.loadById(id)
+        if (musicHistoryEntity == null) {
+            musicHistoryDao.insert(MusicHistoryEntity(id, 1, Time.now()))
+        } else {
+            musicHistoryEntity.count++
+            musicHistoryEntity.lastPlayed = Time.now()
+            musicHistoryDao.update(musicHistoryEntity)
+        }
+    }
+
+    suspend fun deleteAll() {
+        musicHistoryDao.deleteAll()
+    }
 }

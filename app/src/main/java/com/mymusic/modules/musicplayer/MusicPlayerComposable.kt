@@ -22,7 +22,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
 import com.mymusic.R
-import com.mymusic.model.Music
+import com.mymusic.modules.download.DownloadState
+import com.mymusic.modules.music.Music
 
 @Composable
 fun MusicPlayerComposable(
@@ -30,18 +31,26 @@ fun MusicPlayerComposable(
     onNavigationUpClicked: () -> Unit
 ) {
     var music: Music? = null
-    var cursorPosition = 0F
-    var play = false
+    var cursor = 0F
+    var duration = 0F
+    var downloadState = DownloadState.NOT_DOWNLOADED
+    var playerState = MusicPlayerState.PAUSE
     var loop = false
     var shuffle = false
-    viewModel.currentMusic.observeAsState().value?.let { music1 ->
+    viewModel.downloadState.observeAsState().value?.let { downloadState1: DownloadState ->
+        downloadState = downloadState1
+    }
+    viewModel.music.observeAsState().value?.let { music1: Music ->
         music = music1
     }
-    viewModel.cursorPosition.observeAsState().value?.let { float ->
-        cursorPosition = float
+    viewModel.cursor.observeAsState().value?.let { float ->
+        cursor = float
     }
-    viewModel.play.observeAsState().value?.let { boolean ->
-        play = boolean
+    viewModel.duration.observeAsState().value?.let { d ->
+        duration = d
+    }
+    viewModel.playerState.observeAsState().value?.let { playerState1 ->
+        playerState = playerState1
     }
     viewModel.loop.observeAsState().value?.let { boolean ->
         loop = boolean
@@ -51,20 +60,19 @@ fun MusicPlayerComposable(
     }
     music?.let { music1 ->
         Screen(
-            imageUri = music1.imageUri,
-            name = music1.name,
-            artist = music1.artist,
-            cursorPosition = cursorPosition,
-            duration = music1.duration,
-            play = play,
+            music = music1,
+            downloadState = downloadState,
+            cursor = cursor,
+            duration = duration,
+            playerState = playerState,
             shuffle = shuffle,
             loop = loop,
             onMusicPositionChange = { position ->
-                viewModel.cursorPosition(position)
+                viewModel.cursor(position)
             },
             onNavigationUpClicked = onNavigationUpClicked,
-            onPlayPauseClicked = {
-                if (!play) {
+            onPlayPauseClicked = { play ->
+                if (play) {
                     viewModel.play()
                 } else {
                     viewModel.pause()
@@ -92,6 +100,9 @@ fun MusicPlayerComposable(
             },
             onPlayListClicked = {
 
+            },
+            onDownloadClick = {
+                viewModel.downloadMusic(music1.path, "${music1.name} ${music1.artist}")
             }
         )
     }
@@ -99,23 +110,22 @@ fun MusicPlayerComposable(
 
 @Composable
 private fun Screen(
-    imageUri: String,
-    name: String,
-    artist: String,
-    cursorPosition: Float,
+    music: Music,
+    downloadState: DownloadState,
+    cursor: Float,
     duration: Float,
-    play: Boolean,
+    playerState: MusicPlayerState,
     loop: Boolean,
     shuffle: Boolean,
     onMusicPositionChange: (Float) -> Unit,
     onNavigationUpClicked: () -> Unit,
-    onPlayPauseClicked: () -> Unit,
+    onPlayPauseClicked: (Boolean) -> Unit,
     onLoopClicked: () -> Unit,
     onShuffleClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
     onNextClicked: () -> Unit,
-    onPlayListClicked: () -> Unit
-
+    onPlayListClicked: () -> Unit,
+    onDownloadClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -124,12 +134,12 @@ private fun Screen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ActionBar(onNavigationUpClicked)
-        MusicImage(imageUri = imageUri)
-        MusicDetail(name = name, artist = artist)
+        MusicImage(image = music.image)
+        MusicDetail(name = music.name, artist = music.artist)
         MusicController(
-            cursorPosition = cursorPosition,
+            cursorPosition = cursor,
             duration = duration,
-            play = play,
+            playerState = playerState,
             loop = loop,
             shuffle = shuffle,
             onMusicPositionChange = onMusicPositionChange,
@@ -145,7 +155,9 @@ private fun Screen(
 
 
 @Composable
-private fun ActionBar(onNavigationUpClicked: () -> Unit) {
+private fun ActionBar(
+    onNavigationUpClicked: () -> Unit
+) {
     TopAppBar(
         title = {},
         navigationIcon = {
@@ -161,7 +173,7 @@ private fun ActionBar(onNavigationUpClicked: () -> Unit) {
 }
 
 @Composable
-private fun MusicImage(imageUri: String) {
+private fun MusicImage(image: String) {
     val context = LocalContext.current
     val imageView = rememberImageView(context = context)
     Column(
@@ -171,7 +183,7 @@ private fun MusicImage(imageUri: String) {
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 0.dp)
     ) {
         AndroidView(factory = { imageView }, update = {})
-        Glide.with(context).load(imageUri)
+        Glide.with(context).load(image)
             .error(AppCompatResources.getDrawable(context, R.drawable.app_icon))
             .fitCenter()
             .into(imageView)
@@ -200,7 +212,7 @@ private fun MusicDetail(name: String, artist: String) {
         Spacer(modifier = Modifier.height(1.dp))
         Text(
             text = artist,
-            fontSize = 16.sp,
+            fontSize = 15.sp,
             maxLines = 1,
             color = Color.LightGray,
             fontFamily = FontFamily(Font(R.font.josefinsans_regular))
@@ -212,11 +224,11 @@ private fun MusicDetail(name: String, artist: String) {
 private fun MusicController(
     cursorPosition: Float,
     duration: Float,
-    play: Boolean,
+    playerState: MusicPlayerState,
     loop: Boolean,
     shuffle: Boolean,
     onMusicPositionChange: (Float) -> Unit,
-    onPlayPauseClicked: () -> Unit,
+    onPlayPauseClicked: (Boolean) -> Unit,
     onLoopClicked: () -> Unit,
     onShuffleClicked: () -> Unit,
     onPreviousClicked: () -> Unit,
@@ -298,17 +310,38 @@ private fun MusicController(
                 )
             }
             Spacer(modifier = Modifier.weight(0.1f))
-            IconButton(onClick = onPlayPauseClicked) {
-                Icon(
-                    imageVector = if (play) {
-                        Icons.Default.PauseCircleOutline
-                    } else {
-                        Icons.Default.PlayCircleOutline
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp),
-                    tint = Color.White
-                )
+            when (playerState) {
+                MusicPlayerState.PAUSE, MusicPlayerState.PREPARED, MusicPlayerState.COMPLETED -> {
+                    IconButton(onClick = { onPlayPauseClicked(true) }) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircleOutline,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+                }
+                MusicPlayerState.PLAY -> {
+                    IconButton(onClick = { onPlayPauseClicked(false) }) {
+                        Icon(
+                            imageVector = Icons.Default.PauseCircleOutline,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(50.dp)
+                        )
+                    }
+                }
+                MusicPlayerState.LOADING -> {
+                    Box(
+                        modifier = Modifier.size(50.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(30.dp),
+                            color = Color.White
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.weight(0.1f))
             IconButton(onClick = onNextClicked) {
@@ -329,19 +362,6 @@ private fun MusicController(
                     },
                     contentDescription = null,
                     modifier = Modifier.size(30.dp),
-                    tint = Color.White
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = onPlayListClicked) {
-                Icon(
-                    imageVector = Icons.Default.PlaylistPlay,
-                    contentDescription = null,
                     tint = Color.White
                 )
             }

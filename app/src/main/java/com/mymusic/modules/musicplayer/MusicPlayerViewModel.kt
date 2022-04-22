@@ -4,64 +4,73 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mymusic.AppContainer
-import com.mymusic.model.Music
+import com.mymusic.modules.download.DownloadService
+import com.mymusic.modules.download.DownloadState
+import com.mymusic.modules.music.Music
 import kotlinx.coroutines.launch
 
 class MusicPlayerViewModel(
-    private val musicPlayerService: MusicPlayerService = AppContainer.musicPlayerService
+    private val musicPlayerService: MusicPlayerService = AppContainer.musicPlayerService,
+    private val downloadService: DownloadService = AppContainer.downloadService
 ) : ViewModel() {
 
-    var currentMusic = MutableLiveData<Music>()
-    var play = MutableLiveData(false)
-    var cursorPosition = MutableLiveData(0F)
-    var loop = MutableLiveData(false)
-    var shuffle = MutableLiveData(false)
+    val downloadState = MutableLiveData(DownloadState.NOT_DOWNLOADED)
+    val music = MutableLiveData<Music>()
+    val playerState = MutableLiveData(MusicPlayerState.PAUSE)
+    val cursor = MutableLiveData(0F)
+    val loop = MutableLiveData(false)
+    val shuffle = MutableLiveData(false)
+    val duration = MutableLiveData(0F)
 
-    private val onShuffleChangeListener = { boolean: Boolean ->
-        shuffle.postValue(boolean)
+    private val musicListener = { music: Music ->
+        this.music.postValue(music)
     }
 
-    private val onPlayPauseChangeListener = { boolean: Boolean ->
-        play.postValue(boolean)
+    private val cursorListener = { float: Float ->
+        cursor.postValue(float)
     }
 
-    private val onCurrentMusicChangeListener = { music: Music ->
-        currentMusic.postValue(music)
-    }
-
-    private val onCursorPositionChangeListener = { float: Float ->
-        cursorPosition.postValue(float)
-    }
-
-    private val onLoopChangeListener = { boolean : Boolean ->
+    private val loopListener = { boolean: Boolean ->
         loop.postValue(boolean)
+    }
+
+    private val durationListener = { float: Float ->
+        duration.postValue(float)
+    }
+
+    private val playerStateListener = { musicPlayerState: MusicPlayerState ->
+        playerState.postValue(musicPlayerState)
+        if (musicPlayerState == MusicPlayerState.LOADING) {
+            when {
+                music.value?.localPath != null -> {
+                    downloadState.value = DownloadState.DOWNLOADED
+                }
+                else -> {
+                    downloadState.value = DownloadState.NOT_DOWNLOADED
+                }
+            }
+        }
     }
 
     init {
         viewModelScope.launch {
-            musicPlayerService.addPlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
-            musicPlayerService.addCurrentMusicChangeListener(currentMusicChangeListener = onCurrentMusicChangeListener)
-            musicPlayerService.addCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
-            musicPlayerService.addLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
-            musicPlayerService.addShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
+            musicPlayerService.stateDataListener.addAndListen(playerStateListener)
+            musicPlayerService.cursorDataListener.addAndListen(cursorListener)
+            musicPlayerService.loopDataListener.addAndListen(loopListener)
+            musicPlayerService.musicDataListener.addAndListen(musicListener)
+            musicPlayerService.durationDataListener.addAndListen(durationListener)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        musicPlayerService.removePlayPauseChangeListener(onPlayPauseChangeListener = onPlayPauseChangeListener)
-        musicPlayerService.removeCurrentMusicChangeListener(onCurrentMusicChangeListener = onCurrentMusicChangeListener)
-        musicPlayerService.removeCursorPositionChangeListener(onCursorPositionChangeListener = onCursorPositionChangeListener)
-        musicPlayerService.removeLoopChangeListener(onLoopChangeListener = onLoopChangeListener)
-        musicPlayerService.removeShuffleChangeListener(onShuffleChangeListener = onShuffleChangeListener)
+        musicPlayerService.cursorDataListener.remove(cursorListener)
+        musicPlayerService.loopDataListener.remove(loopListener)
+        musicPlayerService.musicDataListener.remove(musicListener)
+        musicPlayerService.stateDataListener.remove(playerStateListener)
+        musicPlayerService.durationDataListener.remove(durationListener)
     }
 
-//    fun start(music: Music) {
-//        viewModelScope.launch {
-//            musicPlayer.start(music = music)
-//        }
-//    }
-//
     fun play() {
         viewModelScope.launch {
             musicPlayerService.play()
@@ -74,19 +83,19 @@ class MusicPlayerViewModel(
         }
     }
 
-    fun cursorPosition(position: Float) {
+    fun cursor(position: Float) {
         viewModelScope.launch {
-            musicPlayerService.cursorPosition(position)
+            musicPlayerService.cursor(position)
         }
     }
 
-    fun loop(){
+    fun loop() {
         viewModelScope.launch {
             musicPlayerService.loop()
         }
     }
 
-    fun unLoop(){
+    fun unLoop() {
         viewModelScope.launch {
             musicPlayerService.unLoop()
         }
@@ -94,25 +103,27 @@ class MusicPlayerViewModel(
 
     fun unShuffle() {
         viewModelScope.launch {
-            musicPlayerService.unShuffle()
         }
     }
 
-    fun shuffle(){
+    fun shuffle() {
         viewModelScope.launch {
-            musicPlayerService.shuffle()
         }
     }
 
-    fun previousMusic(){
+    fun previousMusic() {
         viewModelScope.launch {
-            musicPlayerService.previous()
         }
     }
 
-    fun nextMusic(){
+    fun nextMusic() {
         viewModelScope.launch {
-            musicPlayerService.next()
+        }
+    }
+
+    fun downloadMusic(path: String, name: String) {
+        viewModelScope.launch {
+            downloadService.startDownload(path, name)
         }
     }
 }

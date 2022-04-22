@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.mymusic.R
-import com.mymusic.model.Music
+import com.mymusic.modules.music.Music
 
 @Composable
 fun LocalMusicComposable(
@@ -34,7 +34,7 @@ fun LocalMusicComposable(
     onMusicClick: (Music) -> Unit
 ) {
     var musicList = listOf<Music>()
-    viewModel.musics.observeAsState().value?.let { musicList1 ->
+    viewModel.musics.observeAsState().value?.let { musicList1 : List<Music> ->
         musicList = musicList1
     }
     HandlePermission(
@@ -81,7 +81,7 @@ private fun View(musicList: List<Music>, onMusicClick: (Music) -> Unit) {
             MusicItem(
                 name = item.name,
                 artist = item.artist,
-                imageUri = item.imageUri,
+                imageUri = item.image,
                 onClick = {
                     onMusicClick(item)
                 }

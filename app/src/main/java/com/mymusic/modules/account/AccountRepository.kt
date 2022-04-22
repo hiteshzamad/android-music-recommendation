@@ -33,4 +33,8 @@ class AccountRepository(
         auth.sendPasswordResetEmail(email).await()
     }
 
+    fun logOut() {
+        auth.signOut()
+    }
+
 }

@@ -3,16 +3,18 @@ package com.mymusic.modules.account
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mymusic.util.SpacerComposable
-import com.mymusic.util.TextFieldButtonComposable
 
 @Composable
 fun AccountComposable(
@@ -28,35 +30,33 @@ fun AccountComposable(
 @Composable
 private fun View(name: String, email: String, gender: String, dob: String) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(30.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextFieldButtonComposable(
-            icon = Icons.Default.Person,
-            title = "Name",
-            value = name
-        )
-        SpacerComposable(20.dp)
-        TextFieldButtonComposable(
-            icon = Icons.Default.AlternateEmail,
-            title = "Email",
-            value = email
-        )
-        SpacerComposable(20.dp)
-        TextFieldButtonComposable(
-            icon = Icons.Default.CalendarToday,
-            title = "Date Of Birth",
-            value = dob
-        )
-        SpacerComposable(20.dp)
-        TextFieldButtonComposable(
-            icon = when {
-                gender.compareTo("Male", true) == 0 -> Icons.Default.Male
-                gender.compareTo("Female", true) == 0 -> Icons.Default.Female
-                else -> Icons.Default.Transgender
-            },
-            title = "Gender",
-            value = gender
-        )
+        Card(
+            elevation = 4.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 15.dp, horizontal = 20.dp)
+            ) {
+                Text(
+                    text = name,
+                    color = MaterialTheme.colors.primary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                SpacerComposable(i = 3.dp)
+                Text(
+                    text = email,
+                    color = MaterialTheme.colors.primary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }

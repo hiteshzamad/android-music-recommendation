@@ -1,27 +1,30 @@
 package com.mymusic.modules.dashboard
 
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,29 +37,47 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.Glide
 import com.mymusic.R
-import com.mymusic.model.Music
 import com.mymusic.modules.account.AccountComposable
 import com.mymusic.modules.localmusic.LocalMusicComposable
+import com.mymusic.modules.music.Music
 import com.mymusic.modules.musichistory.MusicHistoryComposable
+import com.mymusic.modules.musicplayer.MusicPlayerState
 import com.mymusic.modules.recommendation.RecommendationComposable
+import com.mymusic.modules.search.MusicSearch
+import com.mymusic.modules.search.SearchComposable
 import com.mymusic.navigation.*
 import com.mymusic.util.DarkTopAppBarComposable
-import com.mymusic.util.Task
+import com.mymusic.util.DialogButtonComposable
+import com.mymusic.util.DialogTextComposable
 
 @Composable
 fun DashboardComposable(
     viewModel: DashboardViewModel = viewModel(),
+    onLogOutClick: () -> Unit,
     onMusicExploreClicked: () -> Unit
 ) {
     var music: Music? = null
-    var play = false
+    var playerState = MusicPlayerState.PAUSE
+    var historyList = listOf<Music>()
+    var recommendationList = listOf<Music>()
+    var searchList = listOf<MusicSearch>()
+    var refreshRecommendation = false
+    val (search, setSearch) = rememberSaveable { mutableStateOf("") }
+    viewModel.refreshRecommendation.observeAsState().value?.let { refresh ->
+        refreshRecommendation = refresh
+    }
+    viewModel.musicHistoryList.observeAsState().value?.let { list1 -> historyList = list1 }
     viewModel.currentMusic.observeAsState().value?.let { music1 -> music = music1 }
-    viewModel.musicRunning.observeAsState().value?.let { play1 -> play = play1 }
+    viewModel.playerState.observeAsState().value?.let { playerState1 -> playerState = playerState1 }
+    viewModel.recommendationList.observeAsState().value?.let { list1 -> recommendationList = list1 }
+    viewModel.searchList.observeAsState().value?.data?.let { list1 -> searchList = list1 }
     val items = listOf(
         DashboardNavigation.Recommendation,
+        DashboardNavigation.MusicSearch,
         DashboardNavigation.MusicHistory,
         DashboardNavigation.Account
     )
+    val (dialogLogOutShow, setDialogLogOutShow) = remember { mutableStateOf(false) }
     val navHostController = rememberNavController()
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -74,23 +95,18 @@ fun DashboardComposable(
                         title = "Local"
                     )
                     ACCOUNT -> DarkTopAppBarComposable(
-                        title = "Account"
+                        title = "Account",
+                        actionIcon = Icons.Default.Logout,
+                        onActionClick = {
+                            setDialogLogOutShow(true)
+                        }
+                    )
+                    MUSIC_SEARCH -> TopAppBarSearch(
+                        search = search,
+                        setSearch = setSearch,
+                        onSearch = { viewModel.search(search) }
                     )
                 }
-            }
-        },
-        floatingActionButton = {
-            navBackStackEntry?.destination?.route?.let {
-//                if (it == RECOMMENDATION) {
-//                    FloatingActionButton(
-//                        onClick = {
-//                            viewModel.recommend()
-//                        },
-//                        content = {
-//                            Icon(Icons.Default.Memory, contentDescription = null)
-//                        }
-//                    )
-//                }
             }
         },
         bottomBar = {
@@ -98,9 +114,9 @@ fun DashboardComposable(
                 music?.let { music1 ->
                     MusicPlayerTile(
                         music = music1,
-                        play = play,
-                        onPausePlayClicked = {
-                            if (!play) {
+                        musicPlayerState = playerState,
+                        onPausePlayClicked = { play ->
+                            if (play) {
                                 viewModel.play()
                             } else {
                                 viewModel.pause()
@@ -136,20 +152,44 @@ fun DashboardComposable(
                 modifier = Modifier.padding(it)
             ) {
                 composable(RECOMMENDATION) {
-                    RecommendationComposable { music -> viewModel.start(music) }
+                    RecommendationComposable(
+                        recommendationList = recommendationList,
+                        refresh = refreshRecommendation,
+                        onRefresh = { viewModel.refreshRecommendation() },
+                        onMusicClick = { music -> viewModel.start(music) }
+                    )
                 }
                 composable(MUSIC_HISTORY) {
-                    MusicHistoryComposable { music -> viewModel.start(music) }
+                    MusicHistoryComposable(historyList) { music: Music -> viewModel.start(music) }
                 }
                 composable(LOCAL_MUSIC) {
                     LocalMusicComposable(
-                        onMusicClick = { music1 ->
+                        onMusicClick = { music1: Music ->
                             viewModel.start(music = music1)
                         }
                     )
                 }
                 composable(ACCOUNT) {
                     AccountComposable()
+                    DialogLogOutComposable(
+                        show = dialogLogOutShow,
+                        onConfirm = {
+                            viewModel.logOut()
+                            onLogOutClick()
+                            setDialogLogOutShow(false)
+                        },
+                        onDismiss = {
+                            setDialogLogOutShow(false)
+                        }
+                    )
+                }
+                composable(MUSIC_SEARCH) {
+                    SearchComposable(
+                        list = searchList,
+                        onSelect = { musicSearch ->
+                            viewModel.start(musicSearch)
+                        }
+                    )
                 }
             }
         }
@@ -160,8 +200,8 @@ fun DashboardComposable(
 @Composable
 private fun MusicPlayerTile(
     music: Music,
-    play: Boolean,
-    onPausePlayClicked: () -> Unit,
+    musicPlayerState: MusicPlayerState,
+    onPausePlayClicked: (Boolean) -> Unit,
     onMusicExploreClicked: () -> Unit
 ) {
     val context = LocalContext.current
@@ -187,9 +227,9 @@ private fun MusicPlayerTile(
                     factory = { imageView },
                     update = {}
                 )
-                LaunchedEffect(music.imageUri) {
+                LaunchedEffect(music.image) {
                     Glide.with(context)
-                        .load(music.imageUri)
+                        .load(music.image)
                         .error(R.drawable.app_icon)
                         .override(100, 100)
                         .fitCenter()
@@ -218,19 +258,123 @@ private fun MusicPlayerTile(
                     fontFamily = FontFamily(Font(R.font.josefinsans_regular))
                 )
             }
-            IconButton(
-                onClick = onPausePlayClicked
-            ) {
-                Icon(
-                    imageVector = if (play) {
-                        Icons.Default.Pause
-                    } else {
-                        Icons.Default.PlayArrow
-                    },
-                    contentDescription = null,
-                    tint = Color.White
-                )
+            when (musicPlayerState) {
+                MusicPlayerState.PAUSE, MusicPlayerState.PREPARED, MusicPlayerState.COMPLETED -> {
+                    IconButton(onClick = { onPausePlayClicked(true) }) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
+                MusicPlayerState.PLAY -> {
+                    IconButton(onClick = { onPausePlayClicked(false) }) {
+                        Icon(
+                            imageVector = Icons.Default.Pause,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+
+                }
+                MusicPlayerState.LOADING -> {
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+
+@Composable
+private fun DialogLogOutComposable(
+    show: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            text = {
+                Column {
+                    DialogTextComposable("Do You Want To Logout?")
+                }
+            },
+            confirmButton = {
+                DialogButtonComposable("Yes", onClick = onConfirm)
+            },
+            dismissButton = {
+                DialogButtonComposable("No", onClick = onDismiss)
+            }
+        )
+    }
+}
+
+@Composable
+private fun TopAppBarSearch(
+    search: String,
+    setSearch: (String) -> Unit,
+    onSearch: () -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+    TopAppBar(
+        title = {
+            TextField(
+                value = search,
+                onValueChange = { value ->
+                    if (value.length <= 32) {
+                        setSearch(value)
+                    }
+                },
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = MaterialTheme.colors.primarySurface,
+                    disabledTextColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    cursorColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        if (search.isNotEmpty()) {
+                            onSearch()
+                            focusManager.clearFocus()
+                        }
+                    }
+                ),
+                placeholder = { Text("Enter Song Name", color = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    if (search.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                setSearch("")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            )
+
+        }
+    )
 }

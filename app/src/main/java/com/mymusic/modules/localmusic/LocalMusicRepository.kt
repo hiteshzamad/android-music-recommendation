@@ -4,7 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
-import com.mymusic.model.Music
+import com.mymusic.modules.music.Music
 
 class LocalMusicRepository(private val context: Context) {
 
@@ -24,13 +24,14 @@ class LocalMusicRepository(private val context: Context) {
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val music = Music(
+                    0,
                     path = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         cursor.getInt(3).toLong()
                     ).toString(),
                     name = cursor.getString(1),
                     artist = cursor.getString(2),
-                    imageUri = ContentUris.withAppendedId(
+                    image = ContentUris.withAppendedId(
                         Uri.parse("content://media/external/audio/albumart"),
                         cursor.getInt(0).toLong()
                     ).toString()

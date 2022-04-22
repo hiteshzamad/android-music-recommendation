@@ -5,6 +5,6 @@ import android.util.Log
 object L {
 
     fun p(s: String) {
-        Log.println(Log.ASSERT, "MUSIC", s)
+        Log.println(Log.ASSERT, "MUSIC ${System.currentTimeMillis()}", s)
     }
 }

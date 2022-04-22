@@ -4,23 +4,28 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
-import com.mymusic.model.Music
+import com.mymusic.modules.music.Music
+import com.mymusic.util.DataListener
 import java.util.*
 
 class MusicPlayerService(private val context: Context) {
     private val mediaPlayer = MediaPlayer()
-    private val playPauseChangeListenerList = mutableListOf<(Boolean) -> Unit>()
-    private val currentMusicChangeListenerList = mutableListOf<(Music) -> Unit>()
-    private val cursorPositionChangeListenerList = mutableListOf<(Float) -> Unit>()
-    private val loopListenerChangeListenerList = mutableListOf<(Boolean) -> Unit>()
-    private val shuffleListenerChangeListenerList = mutableListOf<(Boolean) -> Unit>()
-    private var currentMusic: Music? = null
-    private var shuffle = false
+    val stateDataListener = DataListener(MusicPlayerState.PAUSE)
+    val musicDataListener = DataListener<Music>(null)
+    val cursorDataListener = DataListener(0.0F)
+    val loopDataListener = DataListener(false)
+    val durationDataListener = DataListener(0.0F)
 
+    private var prepared = false
     private val timerTask: TimerTask = object : TimerTask() {
         override fun run() {
-            if (mediaPlayer.isPlaying)
-                onCursorPositionChange()
+            try {
+                if (mediaPlayer.isPlaying) {
+                    cursorDataListener.set(mediaPlayer.currentPosition / 1000F)
+                }
+            } catch (e: Exception) {
+
+            }
         }
     }
 
@@ -31,154 +36,87 @@ class MusicPlayerService(private val context: Context) {
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .build()
         )
-        mediaPlayer.setOnErrorListener { _, _, _ ->
-            onPlayPauseChange()
+        mediaPlayer.setOnErrorListener { _,_,_ ->
+            stateDataListener.set(MusicPlayerState.PAUSE)
             true
         }
         mediaPlayer.setOnCompletionListener {
-            onPlayPauseChange()
+            stateDataListener.set(MusicPlayerState.COMPLETED)
+        }
+        mediaPlayer.setOnPreparedListener {
+            prepared = true
+            stateDataListener.set(MusicPlayerState.PREPARED)
+            mediaPlayer.start()
+            durationDataListener.set(mediaPlayer.duration / 1000F)
+            stateDataListener.set(MusicPlayerState.PLAY)
         }
         Timer().scheduleAtFixedRate(timerTask, 0, 1000)
     }
 
-    fun start(music: Music) {
+    fun start(music1: Music) {
+        prepared = false
+        stateDataListener.set(MusicPlayerState.PAUSE)
         if (mediaPlayer.isPlaying) {
             mediaPlayer.stop()
         }
         mediaPlayer.reset()
-        mediaPlayer.setDataSource(context, Uri.parse(music.path))
+        musicDataListener.set(music1)
+        stateDataListener.set(MusicPlayerState.LOADING)
+        mediaPlayer.setDataSource(context, Uri.parse(music1.path))
+        durationDataListener.set(0f)
+        cursorDataListener.set(0f)
         mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener {
-            onPrepareMusic(music)
+    }
+
+    fun play() {
+        try {
+            if (prepared) {
+                mediaPlayer.start()
+                if (mediaPlayer.isPlaying) {
+                    stateDataListener.set(MusicPlayerState.PLAY)
+                }
+            } else {
+                musicDataListener.t?.let { start(it) }
+            }
+        } catch (e: Exception) {
         }
     }
 
-    fun play() = try {
-        mediaPlayer.start()
-        onPlayPauseChange()
-    } catch (e: Exception) {
+    fun pause() {
+        try {
+            mediaPlayer.pause()
+            if (!mediaPlayer.isPlaying) {
+                stateDataListener.set(MusicPlayerState.PAUSE)
+            }
+        } catch (e: Exception) {
+        }
     }
 
-    fun pause() = try {
-        mediaPlayer.pause()
-        onPlayPauseChange()
-    } catch (e: Exception) {
-    }
-
-    fun cursorPosition(float: Float) = try {
+    fun cursor(float: Float) = try {
         mediaPlayer.seekTo(float.toInt() * 1000)
-        onCursorPositionChange()
+        cursorDataListener.set(mediaPlayer.currentPosition / 1000F)
     } catch (e: Exception) {
     }
 
     fun loop() = try {
         mediaPlayer.isLooping = true
-        onLoopChange()
+        loopDataListener.set(mediaPlayer.isLooping)
     } catch (e: Exception) {
     }
 
     fun unLoop() = try {
         mediaPlayer.isLooping = false
-        onLoopChange()
+        loopDataListener.set(mediaPlayer.isLooping)
     } catch (e: Exception) {
     }
 
-    fun unShuffle() {
-        onShuffleChange(boolean = false)
-    }
-
-    fun shuffle() {
-        onShuffleChange(boolean = true)
-    }
-
-    fun previous() {
-    }
-
-    fun next() {
-    }
-
-    fun addCurrentMusicChangeListener(currentMusicChangeListener: (Music) -> Unit) {
-        currentMusicChangeListenerList.add(currentMusicChangeListener)
-        currentMusic?.let { music -> currentMusicChangeListener(music) }
-    }
-
-    fun removeCurrentMusicChangeListener(onCurrentMusicChangeListener: (Music) -> Unit) {
-        currentMusicChangeListenerList.remove(onCurrentMusicChangeListener)
-    }
-
-    fun addPlayPauseChangeListener(onPlayPauseChangeListener: (Boolean) -> Unit) {
-        playPauseChangeListenerList.add(onPlayPauseChangeListener)
-        onPlayPauseChangeListener(mediaPlayer.isPlaying)
-    }
-
-    fun removePlayPauseChangeListener(onPlayPauseChangeListener: (Boolean) -> Unit) {
-        playPauseChangeListenerList.remove(onPlayPauseChangeListener)
-    }
-
-    fun addCursorPositionChangeListener(onCursorPositionChangeListener: (Float) -> Unit) {
-        cursorPositionChangeListenerList.add(onCursorPositionChangeListener)
-        onCursorPositionChangeListener(mediaPlayer.currentPosition / 1000F)
-    }
-
-    fun removeCursorPositionChangeListener(onCursorPositionChangeListener: (Float) -> Unit) {
-        cursorPositionChangeListenerList.remove(onCursorPositionChangeListener)
-    }
-
-    fun addLoopChangeListener(onLoopChangeListener: (Boolean) -> Unit) {
-        loopListenerChangeListenerList.add(onLoopChangeListener)
-        onLoopChangeListener(mediaPlayer.isLooping)
-    }
-
-    fun removeLoopChangeListener(onLoopChangeListener: (Boolean) -> Unit) {
-        loopListenerChangeListenerList.remove(onLoopChangeListener)
-    }
-
-    fun addShuffleChangeListener(onShuffleChangeListener: (Boolean) -> Unit) {
-        shuffleListenerChangeListenerList.add(onShuffleChangeListener)
-        onShuffleChangeListener(shuffle)
-    }
-
-    fun removeShuffleChangeListener(onShuffleChangeListener: (Boolean) -> Unit) {
-        shuffleListenerChangeListenerList.remove(onShuffleChangeListener)
-    }
-
-    private fun onPrepareMusic(music: Music) {
-        mediaPlayer.start()
-        music.duration = (mediaPlayer.duration / 1000.0F)
-        onCurrentMusicChange(music = music)
-        onPlayPauseChange()
-        onCursorPositionChange()
-    }
-
-    private fun onCurrentMusicChange(music: Music) {
-        currentMusic = music
-        currentMusicChangeListenerList.forEach { currentMusicChangeListener ->
-            currentMusicChangeListener(music)
-        }
-    }
-
-    private fun onPlayPauseChange() {
-        playPauseChangeListenerList.forEach { playPauseChangeListener ->
-            playPauseChangeListener(mediaPlayer.isPlaying)
-        }
-    }
-
-    private fun onCursorPositionChange() {
-        cursorPositionChangeListenerList.forEach { cursorPositionChangeListener ->
-            cursorPositionChangeListener(mediaPlayer.currentPosition / 1000F)
-        }
-    }
-
-    private fun onLoopChange() {
-        loopListenerChangeListenerList.forEach { loopChangeListener ->
-            loopChangeListener(mediaPlayer.isLooping)
-        }
-    }
-
-    private fun onShuffleChange(boolean: Boolean) {
-        shuffle = boolean
-        shuffleListenerChangeListenerList.forEach { shuffleChangeListener ->
-            shuffleChangeListener(boolean)
-        }
+    fun clear() {
+        timerTask.cancel()
+        mediaPlayer.release()
+        stateDataListener.removeAll()
+        musicDataListener.removeAll()
+        cursorDataListener.removeAll()
+        durationDataListener.removeAll()
+        loopDataListener.removeAll()
     }
 }

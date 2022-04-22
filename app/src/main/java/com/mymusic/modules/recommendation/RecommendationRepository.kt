@@ -5,25 +5,46 @@ import com.google.gson.JsonObject
 import com.mymusic.AppContainer
 
 class RecommendationRepository(
-    private val recommendationApiService: RecommendationApiService = AppContainer.recommendationApiService
+    private val recommendationApi: RecommendationApi = AppContainer.recommendationApi,
+    private val recommendationDao: RecommendationDao = AppContainer.recommendationDao
 ) {
-    suspend fun getRecommends(list: List<String>): List<String> {
-        return getList(recommendationApiService.recommends(getJsonObject(list)))
+
+    fun readAll() = recommendationDao.loadAll()
+
+    suspend fun refreshRecommendation(list: List<String>): List<String> {
+        return recommendationApi.recommends(list.getJsonObject()).getList()
     }
 
-    private fun getJsonObject(list: List<String>): JsonObject {
+    suspend fun update(list: List<Long>) {
+        recommendationDao.deleteAll()
+        recommendationDao.inserts(list.toRecommendationEntities())
+    }
+
+    suspend fun deleteAll() {
+        recommendationDao.deleteAll()
+    }
+
+    private fun List<String>.getJsonObject(): JsonObject {
         val jsonObject = JsonObject()
         val jsonArray = JsonArray()
-        list.forEach { jsonArray.add(it) }
+        this.forEach { jsonArray.add(it) }
         jsonObject.add("songs", jsonArray)
         return jsonObject
     }
 
-    private fun getList(jsonObject: JsonObject): List<String> {
+    private fun JsonObject.getList(): List<String> {
         val list = mutableListOf<String>()
-        val jsonArray = jsonObject.getAsJsonArray("predicted_songs")
+        val jsonArray = this.getAsJsonArray("predicted_songs")
         jsonArray.forEach {
             list.add(it.asString)
+        }
+        return list
+    }
+
+    private fun List<Long>.toRecommendationEntities() : List<RecommendationEntity>{
+        val list = mutableListOf<RecommendationEntity>()
+        this.forEach { i ->
+            list.add(RecommendationEntity(i))
         }
         return list
     }

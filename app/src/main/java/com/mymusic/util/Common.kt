@@ -48,7 +48,9 @@ fun ButtonComposable(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier.width(200.dp).padding(10.dp),
+        modifier = Modifier
+            .width(180.dp)
+            .height(50.dp),
         content = {
             Text(
                 text = text.uppercase(),
@@ -152,6 +154,33 @@ fun DarkTopAppBarComposable(
     )
 }
 
+
+@Composable
+fun DarkTopAppBarComposable(
+    title: String,
+    actionIcon: ImageVector,
+    onActionClick: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        actions = {
+            IconButton(
+                content = {
+                    Icon(imageVector = actionIcon, contentDescription = null)
+                },
+                onClick = onActionClick
+            )
+        }
+    )
+}
+
 @Composable
 fun TextFieldComposable(
     value: String,
@@ -236,18 +265,6 @@ fun TextFieldPasswordComposable(
 }
 
 @Composable
-fun LabelComposable(label: String) {
-    Text(
-        text = label,
-        color = MaterialTheme.colors.primary,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.fillMaxWidth()
-    )
-    SpacerComposable(2.dp)
-}
-
-@Composable
 fun RadioGroupComposable(
     enabled: Boolean,
     selectedOption: String,
@@ -293,9 +310,9 @@ fun DatePickerComposable(
 ) {
     val dialog = remember {
         val now = Calendar.getInstance()
-        val year1: Int = now.get(Calendar.YEAR)
-        val month1: Int = now.get(Calendar.MONTH)
-        val day1: Int = now.get(Calendar.DAY_OF_MONTH)
+        val year1 = 2000
+        val month1 = 0
+        val day1 = 1
         val dialog = DatePickerDialog(
             context,
             { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
@@ -307,8 +324,8 @@ fun DatePickerComposable(
             month1,
             day1
         )
-        onDateSelected("$day1/$month1/$year1")
-        dialog.datePicker.maxDate = now.timeInMillis
+        onDateSelected("$day1/${month1 + 1}/$year1")
+        dialog.datePicker.maxDate = now.timeInMillis - 315360000000 // 10 Year
         dialog.datePicker.minDate = now.timeInMillis - 3153600000000 // 100 Year
         dialog.setOnDismissListener { onDismiss() }
         dialog.setOnCancelListener { onDismiss() }
@@ -323,13 +340,23 @@ fun DatePickerComposable(
 
 
 @Composable
-fun TextFieldButtonComposable(icon: ImageVector,title: String, value: String, onClick: () -> Unit) {
+fun TextFieldButtonComposable(
+    icon: ImageVector,
+    title: String,
+    value: String,
+    onClick: () -> Unit
+) {
     Column(
-        modifier = Modifier.fillMaxWidth().height(56.dp).clickable { onClick() }
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clickable { onClick() }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().height(55.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp)
         ) {
             Icon(
                 imageVector = icon,
@@ -350,7 +377,12 @@ fun TextFieldButtonComposable(icon: ImageVector,title: String, value: String, on
                 )
             }
         }
-        Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.Gray))
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.Gray)
+        )
     }
 }
 
@@ -358,11 +390,15 @@ fun TextFieldButtonComposable(icon: ImageVector,title: String, value: String, on
 @Composable
 fun TextFieldButtonComposable(icon: ImageVector, title: String, value: String) {
     Column(
-        modifier = Modifier.fillMaxWidth().height(56.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().height(55.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp)
         ) {
             Icon(
                 imageVector = icon,
@@ -383,6 +419,35 @@ fun TextFieldButtonComposable(icon: ImageVector, title: String, value: String) {
                 )
             }
         }
-        Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.Gray))
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.Gray)
+        )
     }
+}
+
+
+
+@Composable
+fun DialogButtonComposable(text: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(text.uppercase(), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+fun DialogTextComposable(text: String) {
+    Text(text = text, fontSize = 16.sp, color = Color.Black)
+}
+
+@Composable
+fun DialogBoldTextComposable(text: String) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.Black
+    )
 }

@@ -5,7 +5,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mymusic.util.ButtonComposable
@@ -24,20 +24,22 @@ private fun View(
     onRegisterClicked: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize(),
     ) {
-        Spacer(modifier = Modifier.height(30.dp))
         Text(
-            text = "Welcome",
-            fontSize = 26.sp,
-            modifier = Modifier.height(30.dp),
-            textAlign = TextAlign.Center
+            text = "Welcome\nTo\n${stringResource(id = com.mymusic.R.string.app_name)}",
+            fontSize = 40.sp,
+            modifier = Modifier.padding(horizontal = 40.dp, vertical = 80.dp)
         )
-        Spacer(modifier = Modifier.height(100.dp))
-        ButtonComposable(onClick = onLoginClicked, "Log In")
-        Spacer(modifier = Modifier.height(20.dp))
-        ButtonComposable(onClick = onRegisterClicked, "Sign Up")
-        Spacer(modifier = Modifier.height(50.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 20.dp),
+        ) {
+            ButtonComposable(onClick = onLoginClicked, "Log In")
+            Spacer(modifier = Modifier.height(40.dp))
+            ButtonComposable(onClick = onRegisterClicked, "Sign Up")
+        }
     }
 }

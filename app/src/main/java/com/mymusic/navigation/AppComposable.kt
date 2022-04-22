@@ -1,4 +1,4 @@
-package com.mymusic
+package com.mymusic.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -6,15 +6,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mymusic.modules.account.AddDetailComposable
 import com.mymusic.modules.account.ForgotPasswordComposable
-import com.mymusic.modules.initialize.DeviceState
-import com.mymusic.modules.account.SignUpComposable
-import com.mymusic.modules.initialize.InitializeComposable
 import com.mymusic.modules.account.LogInComposable
-import com.mymusic.theme.AppTheme
+import com.mymusic.modules.account.SignUpComposable
 import com.mymusic.modules.dashboard.DashboardComposable
+import com.mymusic.modules.initialize.DeviceState
+import com.mymusic.modules.initialize.InitializeComposable
 import com.mymusic.modules.musicplayer.MusicPlayerComposable
+import com.mymusic.modules.search.SearchComposable
 import com.mymusic.modules.welcome.WelcomeComposable
 import com.mymusic.navigation.*
+import com.mymusic.theme.AppTheme
 
 @Composable
 fun AppComposable() {
@@ -101,6 +102,11 @@ fun AppComposable() {
                 DashboardComposable(
                     onMusicExploreClicked = {
                         navHostController.navigate(PLAYER)
+                    },
+                    onLogOutClick = {
+                        navHostController.navigate(INITIALIZE) {
+                            popUpTo(DASHBOARD) { inclusive = true }
+                        }
                     }
                 )
             }

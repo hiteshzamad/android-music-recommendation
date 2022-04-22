@@ -1,10 +1,10 @@
-package com.mymusic.modules.song
+package com.mymusic.modules.music
 
 import com.google.gson.JsonObject
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface SongApiService {
+interface MusicApi {
 
     @GET("api.php")
     suspend fun search(
@@ -17,7 +17,7 @@ interface SongApiService {
     ): JsonObject
 
     @GET("api.php")
-    suspend fun songData(
+    suspend fun getMusicData(
         @Query("__call") call: String = "song.getDetails",
         @Query("_format") format: String = "json",
         @Query("_marker") marker: String = "0%3F_marker%3D0",
