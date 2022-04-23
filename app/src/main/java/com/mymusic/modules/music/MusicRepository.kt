@@ -99,7 +99,6 @@ class MusicRepository(
 
     private fun JsonObject.toMusicSearch(name: String) = try {
         val id = this.get("id").asString
-//        val name = this.get("title").asString.fromHtml()
         val artist = this.getAsJsonObject("more_info").get("primary_artists").asString.fromHtml()
         MusicSearch(id, name, artist)
     } catch (e: Exception) {

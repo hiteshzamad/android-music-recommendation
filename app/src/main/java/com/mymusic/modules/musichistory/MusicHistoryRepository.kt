@@ -5,7 +5,8 @@ import com.mymusic.AppContainer
 import com.mymusic.Time
 
 class MusicHistoryRepository(
-    private val musicHistoryDao: MusicHistoryDao = AppContainer.musicHistoryDao
+    private val musicHistoryDao: MusicHistoryDao = AppContainer.musicHistoryDao,
+    private val musicHistoryCollection: MusicHistoryCollection = AppContainer.musicHistoryCollection
 ) {
 
     fun readRecentTen() = musicHistoryDao.loadRecent10()

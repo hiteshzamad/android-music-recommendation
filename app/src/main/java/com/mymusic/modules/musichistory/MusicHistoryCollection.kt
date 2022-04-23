@@ -37,13 +37,11 @@ class MusicHistoryCollection(
             val hashMap = hashMapOf<String, Any>(
                 "name" to doc.name,
                 "artist" to doc.artist,
-                "count" to doc.count,
                 "lastPlayTime" to doc.lastPlayed
             )
             musicHistoryRef.document().set(hashMap).await()
         } else {
             val hashMap = hashMapOf<String, Any>(
-                "count" to doc.count,
                 "lastPlayTime" to doc.lastPlayed
             )
             musicHistoryRef.document(querySnapshot.documents[0].id).update(hashMap).await()

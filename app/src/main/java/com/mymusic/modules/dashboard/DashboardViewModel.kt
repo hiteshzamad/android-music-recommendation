@@ -60,6 +60,8 @@ class DashboardViewModel(
             musicPlayerService.stateDataListener.addAndListen(stateListener)
             musicPlayerService.musicDataListener.add(musicListener)
         }
+
+        refreshRecommendation()
     }
 
     override fun onCleared() {
