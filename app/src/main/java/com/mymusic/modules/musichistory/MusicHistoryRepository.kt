@@ -1,29 +1,20 @@
 package com.mymusic.modules.musichistory
 
-import androidx.annotation.WorkerThread
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.QuerySnapshot
 import com.mymusic.AppContainer
 import com.mymusic.Time
 
 class MusicHistoryRepository(
-    private val musicHistoryDao: MusicHistoryDao = AppContainer.musicHistoryDao,
     private val musicHistoryCollection: MusicHistoryCollection = AppContainer.musicHistoryCollection
 ) {
 
-    fun readRecentTen() = musicHistoryDao.loadRecent10()
+    fun attachListener(listener: EventListener<QuerySnapshot>) =
+        musicHistoryCollection.addListener(listener)
 
-    @WorkerThread
-    suspend fun upsert(id: Long) {
-        val musicHistoryEntity = musicHistoryDao.loadById(id)
-        if (musicHistoryEntity == null) {
-            musicHistoryDao.insert(MusicHistoryEntity(id, 1, Time.now()))
-        } else {
-            musicHistoryEntity.count++
-            musicHistoryEntity.lastPlayed = Time.now()
-            musicHistoryDao.update(musicHistoryEntity)
-        }
-    }
+    fun removeListener() = musicHistoryCollection.removeListener()
 
-    suspend fun deleteAll() {
-        musicHistoryDao.deleteAll()
+    suspend fun update(id: String) {
+        musicHistoryCollection.update(MusicHistoryDocument(id, Time.now()))
     }
 }

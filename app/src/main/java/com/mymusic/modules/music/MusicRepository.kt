@@ -1,125 +1,88 @@
 package com.mymusic.modules.music
 
-import android.os.Build
-import android.text.Html
-import androidx.annotation.WorkerThread
-import androidx.core.text.HtmlCompat
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.mymusic.AppContainer
 import com.mymusic.modules.search.MusicSearch
-import com.mymusic.modules.search.searchSongDataset
 
 class MusicRepository(
     private val musicApi: MusicApi = AppContainer.musicApi,
-    private val musicDao: MusicDao = AppContainer.musicDao
+    private val musicCollection: MusicCollection = AppContainer.musicCollection
 ) {
-    suspend fun getBestMatchMusicList(names: List<String>) : List<Music>{
-        val musicList = mutableListOf<Music>()
-        for (name in names) {
-            searchMusicMetaJsonList(name)?.bestMatchMusicMetaJson()?.toMusicSearch(name)
-                ?.let { musicSearch ->
-                    getMusic(musicSearch)?.let { music ->
-                        musicList.add(music)
-                    }
-                }
+    suspend fun getMusicListByNames(searches: List<String>): List<Music> {
+        val musics = mutableListOf<Music>()
+        for (search in searches) {
+            val document = musicCollection.searchByName(search)
+            document?.let { document1 ->
+                val music = getMusicByMusicSearch(document1.id, document1.name, document1.artist)
+                music?.let { music1 -> musics.add(music1) }
+            }
         }
-        return musicList
+        return musics
     }
 
-    suspend fun getSearchList(search: String): List<MusicSearch> {
+    suspend fun getMusicById(id: String): Music? {
+        musicCollection.searchById(id)?.let { document ->
+            return getMusicByMusicSearch(document.id, document.name, document.artist)
+        }
+        return null
+    }
+
+    suspend fun getMusicSearchList(search: String): List<MusicSearch> {
         val searchList = mutableListOf<MusicSearch>()
         try {
-            val names = searchSongDataset(search)
-            for (name in names) {
-                searchMusicMetaJsonList(name)?.bestMatchMusicMetaJson()?.toMusicSearch(name)
-                    ?.let { musicSearch ->
-                        searchList.add(musicSearch)
-                    }
+            val documents = musicCollection.queryByName(search)
+            for (document in documents) {
+                searchList.add(MusicSearch(document.id, document.name, document.artist))
             }
         } catch (e: Exception) {
         }
         return searchList
     }
 
-    suspend fun getMusic(id: Long) = loadMusicEntityById(id)
 
-    suspend fun getMusics(ids: List<Long>) = loadMusicEntitiesById(ids)
-
-    suspend fun getMusic(musicSearch: MusicSearch): Music? = with(musicSearch) {
-        loadMusicEntityByNameAndArtist(musicSearch)?.let { musicEntity ->
-            return musicEntity.toMusic()
+    suspend fun getMusicByMusicSearch(id: String, name: String, artist: String): Music? {
+        try {
+            musicApi.search(text = name)
+                .getAsJsonObject("songs")
+                .getAsJsonArray("data")?.bestMatchMusicApiId(
+                    name, artist
+                )?.let { apiId ->
+                    getMusicJsonByApiId(apiId)?.toImageUrlPair()?.let { pair ->
+                        return Music(
+                            id,
+                            pair.second,
+                            name,
+                            artist,
+                            pair.first
+                        )
+                    }
+                }
+            return null
+        }catch (e: Exception){
+            return null
         }
-        getMusicJson(musicSearch.id)?.toMusic(musicSearch.name)?.let { music ->
-            music.id = insertMusicEntity(music.toMusicEntity())
-            return music
-        }
-        return null
     }
 
-    @WorkerThread
-    private suspend fun insertMusicEntity(musicEntity: MusicEntity) =
-        musicDao.insert(musicEntity)
-
-    @WorkerThread
-    private suspend fun loadMusicEntityByNameAndArtist(musicSearch: MusicSearch) =
-        musicDao.loadMusicEntityByNameAndArtist(musicSearch.name, musicSearch.artist)
-
-    @WorkerThread
-    private suspend fun loadMusicEntityById(id: Long) =
-        musicDao.loadMusicEntityById(id)
-
-    @WorkerThread
-    private suspend fun loadMusicEntitiesById(ids: List<Long>) =
-        musicDao.loadMusicEntitiesById(ids)
-
-    suspend fun deleteAll() {
-        musicDao.deleteAll()
-    }
-
-    private suspend fun searchMusicMetaJsonList(search: String) = try {
-        musicApi.search(text = search)
-            .getAsJsonObject("songs")
-            .getAsJsonArray("data")
-    } catch (e: Exception) {
-        null
-    }
-
-    private suspend fun getMusicJson(id: String) = try {
+    private suspend fun getMusicJsonByApiId(id: String): JsonObject? = try {
         musicApi.getMusicData(pids = id).getAsJsonObject(id)
     } catch (e: Exception) {
         null
     }
 
-    private fun JsonArray.bestMatchMusicMetaJson() = try {
-        this[0].asJsonObject
+    private fun JsonArray.bestMatchMusicApiId(name: String, artist: String) = try {
+        this[0].asJsonObject?.get("id")?.asString
     } catch (e: Exception) {
         null
     }
 
-    private fun JsonObject.toMusicSearch(name: String) = try {
-        val id = this.get("id").asString
-        val artist = this.getAsJsonObject("more_info").get("primary_artists").asString.fromHtml()
-        MusicSearch(id, name, artist)
-    } catch (e: Exception) {
-        null
-    }
-
-    private fun JsonObject.toMusic(name: String) = try {
+    private fun JsonObject.toImageUrlPair() = try {
         val image = this.get("image").asString
-        val artist = this.get("primary_artists").asString.fromHtml()
         var path = this.get("media_preview_url").asString.replace("preview", "aac")
         path = path.replace("_96_p.mp4", "_160.mp4")
-        Music(0, path, name, artist, image)
+        Pair(image, path)
     } catch (e: Exception) {
         null
     }
-
-    private fun String.fromHtml() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-        Html.fromHtml(this, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
-    } else {
-        Html.fromHtml(this).toString()
-    }
-
 }
 

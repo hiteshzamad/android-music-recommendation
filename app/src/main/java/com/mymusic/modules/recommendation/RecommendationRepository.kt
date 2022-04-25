@@ -15,7 +15,7 @@ class RecommendationRepository(
         return recommendationApi.recommends(list.getJsonObject()).getList()
     }
 
-    suspend fun update(list: List<Long>) {
+    suspend fun update(list: List<String>) {
         recommendationDao.deleteAll()
         recommendationDao.inserts(list.toRecommendationEntities())
     }
@@ -41,7 +41,7 @@ class RecommendationRepository(
         return list
     }
 
-    private fun List<Long>.toRecommendationEntities() : List<RecommendationEntity>{
+    private fun List<String>.toRecommendationEntities() : List<RecommendationEntity>{
         val list = mutableListOf<RecommendationEntity>()
         this.forEach { i ->
             list.add(RecommendationEntity(i))

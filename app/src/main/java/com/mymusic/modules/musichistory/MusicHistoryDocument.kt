@@ -1,8 +1,6 @@
 package com.mymusic.modules.musichistory
 
 data class MusicHistoryDocument(
-    val name: String,
-    val artist: String,
-    val count: Long,
+    val id: String,
     val lastPlayed: Long
 )

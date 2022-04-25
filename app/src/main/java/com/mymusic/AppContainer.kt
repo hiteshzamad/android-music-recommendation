@@ -29,10 +29,9 @@ object AppContainer {
 
     val accountCollection by lazy { remoteDatabase.accountCollection() }
     val musicHistoryCollection by lazy { remoteDatabase.musicHistoryCollection() }
+    val musicCollection by lazy{ remoteDatabase.musicCollection()}
 
-    val musicHistoryDao by lazy { localDatabase.musicHistoryDao() }
     val recommendationDao by lazy { localDatabase.recommendationDao() }
-    val musicDao by lazy { localDatabase.musicDao() }
 
     val musicRepository by lazy { MusicRepository() }
     val accountRepository by lazy { AccountRepository() }

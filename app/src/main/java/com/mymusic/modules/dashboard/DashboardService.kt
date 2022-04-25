@@ -1,10 +1,13 @@
 package com.mymusic.modules.dashboard
 
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.mymusic.AppContainer
 import com.mymusic.modules.account.AccountRepository
 import com.mymusic.modules.music.Music
 import com.mymusic.modules.music.MusicRepository
-import com.mymusic.modules.music.toMusic
 import com.mymusic.modules.musichistory.MusicHistoryRepository
 import com.mymusic.modules.recommendation.RecommendationRepository
 import com.mymusic.modules.search.MusicSearch
@@ -18,51 +21,40 @@ class DashboardService(
     private val musicRepository: MusicRepository = AppContainer.musicRepository,
     private val accountRepository: AccountRepository = AppContainer.accountRepository
 ) {
-    private val histories = mutableListOf<String>()
-
-    val historyFlow: Flow<List<Music>> = flow {
-        musicHistoryRepository.readRecentTen().collect { list ->
-            val musics = mutableListOf<Music>()
-            val names = mutableListOf<String>()
-            list.forEach { entity ->
-                musicRepository.getMusic(entity.musicId)?.let { entity1 ->
-                    musics.add(entity1.toMusic())
-                    names.add(entity1.name)
-                }
-            }
-            emit(musics)
-            histories.clear()
-            histories.addAll(names)
-        }
-    }
 
     val recommendationFlow: Flow<List<Music>> = flow {
         recommendationRepository.readAll().collect { list ->
-            val ids = mutableListOf<Long>()
-            list.forEach { entity -> ids.add(entity.musicId) }
-            val musicsEntities = musicRepository.getMusics(ids)
             val musics = mutableListOf<Music>()
-            musicsEntities.forEach { musicEntity ->
-                musics.add(musicEntity.toMusic())
+            list.forEach { entity ->
+                val music = musicRepository.getMusicById(entity.musicId)
+                if (music != null) {
+                    musics.add(music)
+                }
             }
             emit(musics)
         }
     }
 
-    suspend fun getSearches(name: String) = musicRepository.getSearchList(name)
+    suspend fun getSearches(name: String) = musicRepository.getMusicSearchList(name)
 
-    suspend fun addHistory(id: Long) = musicHistoryRepository.upsert(id)
+    suspend fun addHistory(id: String) = musicHistoryRepository.update(id)
 
-    suspend fun startNextRecommendation() {
+    fun attachHistoryListener(listener: EventListener<QuerySnapshot>) =
+        musicHistoryRepository.attachListener(listener)
+
+    fun removeHistoryListener() = musicHistoryRepository.removeListener()
+
+    fun startNextRecommendation() {
 
     }
 
-    suspend fun getMusic(musicSearch: MusicSearch) = musicRepository.getMusic(musicSearch)
+    suspend fun getMusic(musicSearch: MusicSearch) =
+        musicRepository.getMusicByMusicSearch(musicSearch.id, musicSearch.name, musicSearch.artist)
 
-    suspend fun refreshRecommendationList() = try {
-        val recommendationStrings = recommendationRepository.refreshRecommendation(histories)
-        val musics = musicRepository.getBestMatchMusicList(recommendationStrings)
-        val ids = mutableListOf<Long>()
+    suspend fun refreshRecommendationList(histories: List<String>) = try {
+        val recommendedMusicNames = recommendationRepository.refreshRecommendation(histories)
+        val musics = musicRepository.getMusicListByNames(recommendedMusicNames)
+        val ids = mutableListOf<String>()
         musics.forEach { music -> ids.add(music.id) }
         recommendationRepository.update(ids)
         true
@@ -73,9 +65,8 @@ class DashboardService(
 
     suspend fun logOut() {
         accountRepository.logOut()
-        musicHistoryRepository.deleteAll()
-        musicRepository.deleteAll()
         recommendationRepository.deleteAll()
+        Firebase.firestore.clearPersistence()
     }
 
 }

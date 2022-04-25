@@ -24,7 +24,7 @@ class LocalMusicRepository(private val context: Context) {
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val music = Music(
-                    0,
+                    "0",
                     path = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         cursor.getInt(3).toLong()

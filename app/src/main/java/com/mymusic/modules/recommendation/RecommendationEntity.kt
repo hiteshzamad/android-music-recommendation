@@ -6,5 +6,5 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "recommendation")
 data class RecommendationEntity(
-    @PrimaryKey(autoGenerate = false) @ColumnInfo(name = "musicId") val musicId: Long
+    @PrimaryKey(autoGenerate = false) @ColumnInfo(name = "musicId") val musicId: String
 )
